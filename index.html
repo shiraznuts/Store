@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiraz Nuts | فروشگاه</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: Tahoma, Arial, sans-serif; }
+  body { background:#181210; color:#fff; }
+  header { background:#2b1d17; padding:16px; text-align:center; position:sticky; top:0; z-index:10; }
+  header h1 { color:#e0a458; font-size:22px; }
+  .search-box { padding:12px 16px; }
+  .search-box input { width:100%; padding:10px 14px; border-radius:10px; border:none; font-size:15px; }
+  .categories { display:flex; overflow-x:auto; gap:8px; padding:0 16px 12px; }
+  .categories span { background:#2b1d17; color:#e0a458; padding:8px 14px; border-radius:20px; white-space:nowrap; font-size:14px; }
+  .products { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:16px; }
+  .card { background:#231a16; border-radius:14px; padding:10px; text-align:center; }
+  .card img { width:100%; height:100px; object-fit:cover; border-radius:10px; }
+  .card h3 { font-size:14px; margin:8px 0 4px; }
+  .card p { color:#e0a458; font-weight:bold; margin-bottom:8px; }
+  .card button { background:#e0a458; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; }
+  #cart-btn { position:fixed; bottom:16px; left:16px; right:16px; background:#e0a458; color:#181210; padding:14px; border-radius:14px; text-align:center; font-weight:bold; display:none; }
+</style>
+</head>
+<body>
 
+<header><h1>Shiraz Nuts</h1></header>
+
+<div class="search-box">
+  <input type="text" id="search" placeholder="جستجوی محصول...">
+</div>
+
+<div class="categories" id="categories"></div>
+
+<div class="products" id="products"></div>
+
+<div id="cart-btn" onclick="sendOrder()">مشاهده سبد خرید و ارسال سفارش (<span id="cart-count">0</span>)</div>
+
+<script>
+let cart = {};
+let allProducts = [];
+
+fetch('products.json')
+  .then(res => res.json())
+  .then(data => {
+    allProducts = data;
+    renderCategories(data);
+    renderProducts(data);
+  });
+
+function renderCategories(data){
+  const cats = [...new Set(data.map(p => p.category))];
+  const el = document.getElementById('categories');
+  el.innerHTML = cats.map(c => `<span onclick="filterCategory('${c}')">${c}</span>`).join('');
+}
+
+function renderProducts(data, filter=null){
+  const el = document.getElementById('products');
+  const list = filter ? data.filter(p => p.category === filter) : data;
+  el.innerHTML = list.map(p => `
+    <div class="card">
+      <img src="${p.image}" alt="${p.name}">
+      <h3>${p.name}</h3>
+      <p>${p.price} ریال عمانی</p>
+      <button onclick="addToCart('${p.id}','${p.name}',${p.price})">افزودن</button>
+    </div>
+  `).join('');
+}
+
+function filterCategory(cat){
+  renderProducts(allProducts, cat);
+}
+
+function addToCart(id, name, price){
+  if(cart[id]) cart[id].qty++;
+  else cart[id] = {name, price, qty:1};
+  updateCartBtn();
+}
+
+function updateCartBtn(){
+  const btn = document.getElementById('cart-btn');
+  const count = Object.values(cart).reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cart-count').innerText = count;
+  btn.style.display = count > 0 ? 'block' : 'none';
+}
+
+function sendOrder(){
+  let msg = "سفارش جدید از سایت:%0A";
+  let total = 0;
+  for(const id in cart){
+    const item = cart[id];
+    msg += `${item.name} × ${item.qty} = ${item.price*item.qty} ریال%0A`;
+    total += item.price*item.qty;
+  }
+  msg += `جمع کل: ${total} ریال`;
+  window.open(`https://wa.me/96890000000?text=${msg}`, '_blank');
+}
+
+document.getElementById('search').addEventListener('input', function(){
+  const q = this.value.toLowerCase();
+  const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q));
+  renderProducts(filtered);
+});
+</script>
+
+</body>
+</html>
