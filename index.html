@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shiraz Nuts | فروشگاه</title>
+<title>Shiraz Nuts | المتجر</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family: Tahoma, Arial, sans-serif; }
   body { background:#181210; color:#fff; }
@@ -27,14 +27,14 @@
 <header><h1>Shiraz Nuts</h1></header>
 
 <div class="search-box">
-  <input type="text" id="search" placeholder="جستجوی محصول...">
+  <input type="text" id="search" placeholder="البحث عن منتج...">
 </div>
 
 <div class="categories" id="categories"></div>
 
 <div class="products" id="products"></div>
 
-<div id="cart-btn" onclick="sendOrder()">مشاهده سبد خرید و ارسال سفارش (<span id="cart-count">0</span>)</div>
+<div id="cart-btn" onclick="sendOrder()">عرض السلة وإرسال الطلب (<span id="cart-count">0</span>)</div>
 
 <script>
 let cart = {};
@@ -61,8 +61,8 @@ function renderProducts(data, filter=null){
     <div class="card">
       <img src="${p.image}" alt="${p.name}">
       <h3>${p.name}</h3>
-      <p>${p.price} ریال عمانی</p>
-      <button onclick="addToCart('${p.id}','${p.name}',${p.price})">افزودن</button>
+      <p>${p.price} ريال عماني</p>
+      <button onclick="addToCart('${p.id}','${p.name}',${p.price})">إضافة</button>
     </div>
   `).join('');
 }
@@ -85,16 +85,15 @@ function updateCartBtn(){
 }
 
 function sendOrder(){
-  let msg = "سفارش جدید از سایت:%0A";
+  let msg = "طلب جديد من الموقع:%0A";
   let total = 0;
   for(const id in cart){
     const item = cart[id];
-    msg += `${item.name} × ${item.qty} = ${item.price*item.qty} ریال%0A`;
+    msg += `${item.name} × ${item.qty} = ${item.price*item.qty} ريال%0A`;
     total += item.price*item.qty;
   }
-  msg += `جمع کل: ${total} ریال`;
-  window.open(`https://wa.me/
-  96898779009?text=${msg}`, '_blank');
+  msg += `المجموع الكلي: ${total} ريال`;
+  window.open(`https://wa.me/96898779009?text=${msg}`, '_blank');
 }
 
 document.getElementById('search').addEventListener('input', function(){
