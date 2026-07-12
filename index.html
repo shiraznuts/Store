@@ -20,6 +20,7 @@
   .card p { color:#e0a458; font-weight:bold; margin-bottom:8px; }
   .card button { background:#e0a458; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; }
   #cart-btn { position:fixed; bottom:16px; left:16px; right:16px; background:#e0a458; color:#181210; padding:14px; border-radius:14px; text-align:center; font-weight:bold; display:none; }
+  .loading { text-align:center; padding:40px; color:#888; }
 </style>
 </head>
 <body>
@@ -32,7 +33,7 @@
 
 <div class="categories" id="categories"></div>
 
-<div class="products" id="products"></div>
+<div class="products" id="products"><div class="loading">جاري التحميل...</div></div>
 
 <div id="cart-btn" onclick="sendOrder()">عرض السلة وإرسال الطلب (<span id="cart-count">0</span>)</div>
 
@@ -40,12 +41,17 @@
 let cart = {};
 let allProducts = [];
 
-fetch('products.json')
+const SHEET_URL = "https://opensheet.elk.sh/1vsmKKY0-Hw75cTAxHhAhavUgTlRugwBV_88nsr50jj4/Sheet1";
+
+fetch(SHEET_URL)
   .then(res => res.json())
   .then(data => {
     allProducts = data;
     renderCategories(data);
     renderProducts(data);
+  })
+  .catch(() => {
+    document.getElementById('products').innerHTML = '<div class="loading">خطأ في تحميل المنتجات</div>';
   });
 
 function renderCategories(data){
@@ -59,7 +65,7 @@ function renderProducts(data, filter=null){
   const list = filter ? data.filter(p => p.category === filter) : data;
   el.innerHTML = list.map(p => `
     <div class="card">
-      <img src="${p.image}" alt="${p.name}">
+      <img src="${p.image || 'https://via.placeholder.com/150'}" alt="${p.name}">
       <h3>${p.name}</h3>
       <p>${p.price} ريال عماني</p>
       <button onclick="addToCart('${p.id}','${p.name}',${p.price})">إضافة</button>
