@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiraz Nuts | متجر فاخر</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Tahoma, Arial, sans-serif;
+    background: #0f0f10;
+    color: #eee;
+    padding-bottom: 70px;
+  }
+  header.site {
+    text-align: center;
+    padding: 24px 12px 12px;
+  }
+  header.site h1 { color: #d4af37; font-size: 28px; }
+  header.site p { color: #999; font-size: 13px; margin-top: 4px; }
+
+  .cats {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px;
+  }
+  .cats button {
+    white-space: nowrap;
+    background: #1a1a1c;
+    color: #ccc;
+    border: 1px solid #2a2a2c;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  .cats button.active { background: #d4af37; color: #000; border-color: #d4af37; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  .product-card {
+    background: #1a1a1c;
+    border: 1px solid #2a2a2c;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .product-card img {
+    width: 100%; height: 120px; object-fit: cover; display: block;
+    background: #222;
+  }
+  .product-card .info { padding: 8px; }
+  .product-card .name { font-size: 14px; color: #eee; margin-bottom: 4px; }
+  .product-card .price { color: #d4af37; font-size: 13px; }
+  .product-card .old-price { color: #777; text-decoration: line-through; font-size: 11px; margin-left: 6px; }
+  .badge-featured {
+    position: absolute; background: #d4af37; color: #000;
+    font-size: 10px; padding: 2px 6px; border-radius: 6px; margin: 6px;
+  }
+  .card-img-wrap { position: relative; }
+
+  /* Modal محصول */
+  .modal-bg {
+    display: none;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 50; align-items: flex-end;
+  }
+  .modal-bg.active { display: flex; }
+  .modal {
+    background: #161617;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 16px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal img.main { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 10px; }
+  .modal h2 { color: #d4af37; margin-bottom: 6px; }
+  .modal p.desc { color: #aaa; font-size: 14px; margin-bottom: 12px; }
+  .variant-choice {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1e1e20; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
+    border: 1px solid #2a2a2c; cursor: pointer;
+  }
+  .variant-choice.selected { border-color: #d4af37; background: #24211a; }
+  .close-modal {
+    position: absolute; left: 16px; top: 16px;
+    background: #333; color: #fff; border-radius: 50%;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  }
+  .add-cart-btn {
+    width: 100%; background: #d4af37; color: #000; border: none;
+    padding: 14px; border-radius: 10px; font-weight: bold; font-size: 15px; margin-top: 10px;
+  }
+
+  /* سبد خرید */
+  .cart-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #d4af37; color: #000;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; font-weight: bold;
+    cursor: pointer;
+    display: none;
+  }
+  .cart-bar.show { display: flex; }
+  .cart-modal .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #2a2a2c;
+  }
+  .qty-btns button {
+    background: #333; color: #fff; border: none; width: 28px; height: 28px; border-radius: 6px;
+  }
+  .checkout-btn {
+    width: 100%; background: #25D366; color: #fff; border: none;
+    padding: 14px; border-radius: 10px; font-weight: bold; font-size: 15px; margin-top: 14px;
+  }
+  .empty-msg { text-align: center; color: #777; padding: 40px 20px; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <h1>Shiraz Nuts</h1>
+  <p>خشكبات وزعفران فاخر</p>
+</header>
+
+<div class="cats" id="cats-container"></div>
+
+<div class="grid" id="products-grid"></div>
+
+<!-- Modal جزئیات محصول -->
+<div class="modal-bg" id="product-modal-bg">
+  <div class="modal" style="position:relative">
+    <div class="close-modal" onclick="closeProductModal()">✕</div>
+    <img class="main" id="modal-img">
+    <h2 id="modal-name"></h2>
+    <p class="desc" id="modal-desc"></p>
+    <div id="modal-variants"></div>
+    <button class="add-cart-btn" onclick="addSelectedToCart()">افزودن به سبد خرید</button>
+  </div>
+</div>
+
+<!-- نوار سبد خرید -->
+<div class="cart-bar" id="cart-bar" onclick="openCartModal()">
+  <span id="cart-count">0 محصول</span>
+  <span id="cart-total">0 ريال</span>
+</div>
+
+<!-- Modal سبد خرید -->
+<div class="modal-bg" id="cart-modal-bg">
+  <div class="modal" style="position:relative">
+    <div class="close-modal" onclick="closeCartModal()">✕</div>
+    <h2>سبد خرید</h2>
+    <div id="cart-items"></div>
+    <div style="margin-top:12px; font-weight:bold; color:#d4af37" id="cart-total-line"></div>
+    <button class="checkout-btn" onclick="sendWhatsAppOrder()">ارسال سفارش به واتساپ</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, getDocs, query, where, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ---------- تنظیمات ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
+  authDomain: "shiraznuts-92e20.firebaseapp.com",
+  projectId: "shiraznuts-92e20",
+  storageBucket: "shiraznuts-92e20.firebasestorage.app",
+  messagingSenderId: "236719692703",
+  appId: "1:236719692703:web:2b7ed97a0a80aa1a903baa"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ⚠️ این شماره را با شماره واتساپ واقعی فروشگاه جایگزین کن (با کد کشور، بدون + یا صفر اول)
+const WHATSAPP_NUMBER = "96898779009";
+
+let allProducts = [];
+let allCategories = [];
+let currentCategory = "all";
+let cart = JSON.parse(localStorage.getItem("shiraznuts_cart") || "[]");
+let currentModalProduct = null;
+let selectedVariant = null;
+
+// ---------- بارگذاری دسته‌بندی‌ها ----------
+async function loadCategories() {
+  const snap = await getDocs(query(collection(db, "categories"), orderBy("order")));
+  allCategories = [];
+  snap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+  renderCategoryTabs();
+}
+
+function renderCategoryTabs() {
+  const container = document.getElementById("cats-container");
+  container.innerHTML = "";
+  const allBtn = document.createElement("button");
+  allBtn.textContent = "همه";
+  allBtn.className = currentCategory === "all" ? "active" : "";
+  allBtn.onclick = () => { currentCategory = "all"; renderCategoryTabs(); renderProducts(); };
+  container.appendChild(allBtn);
+
+  allCategories.forEach(cat => {
+    if (cat.active === false) return;
+    const btn = document.createElement("button");
+    btn.textContent = cat.name;
+    btn.className = currentCategory === cat.id ? "active" : "";
+    btn.onclick = () => { currentCategory = cat.id; renderCategoryTabs(); renderProducts(); };
+    container.appendChild(btn);
+  });
+}
+
+// ---------- بارگذاری محصولات ----------
+async function loadProducts() {
+  const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+  allProducts = [];
+  snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+  renderProducts();
+}
+
+function renderProducts() {
+  const grid = document.getElementById("products-grid");
+  grid.innerHTML = "";
+  const filtered = allProducts.filter(p => {
+    if (p.active === false) return false;
+    if (currentCategory !== "all" && p.categoryId !== currentCategory) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-msg" style="grid-column:1/-1">محصولی یافت نشد</div>`;
+    return;
+  }
+
+  filtered.forEach(p => {
+    const img = (p.images && p.images[0]) || "";
+    const cheapestVariant = (p.variants || []).slice().sort((a,b) => a.price - b.price)[0] || {};
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.onclick = () => openProductModal(p);
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        ${p.featured ? '<span class="badge-featured">⭐ ویژه</span>' : ''}
+        <img src="${img}" loading="lazy">
+      </div>
+      <div class="info">
+        <div class="name">${p.name}</div>
+        <div class="price">
+          ${cheapestVariant.oldPrice ? `<span class="old-price">${cheapestVariant.oldPrice}</span>` : ''}
+          ${cheapestVariant.price || '-'} ريال
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ---------- Modal محصول ----------
+window.openProductModal = function (p) {
+  currentModalProduct = p;
+  selectedVariant = null;
+  document.getElementById("modal-img").src = (p.images && p.images[0]) || "";
+  document.getElementById("modal-name").innerText = p.name;
+  document.getElementById("modal-desc").innerText = p.description || "";
+
+  const variantsEl = document.getElementById("modal-variants");
+  variantsEl.innerHTML = "";
+  (p.variants || []).forEach((v, idx) => {
+    const el = document.createElement("div");
+    el.className = "variant-choice";
+    el.innerHTML = `
+      <span>${v.weight}</span>
+      <span>${v.oldPrice ? `<s style="color:#777">${v.oldPrice}</s> ` : ''}${v.price} ريال</span>
+    `;
+    el.onclick = () => {
+      document.querySelectorAll(".variant-choice").forEach(x => x.classList.remove("selected"));
+      el.classList.add("selected");
+      selectedVariant = v;
+    };
+    variantsEl.appendChild(el);
+    if (idx === 0) { el.click(); }
+  });
+
+  document.getElementById("product-modal-bg").classList.add("active");
+};
+
+window.closeProductModal = function () {
+  document.getElementById("product-modal-bg").classList.remove("active");
+};
+
+window.addSelectedToCart = function () {
+  if (!currentModalProduct || !selectedVariant) return;
+  const existing = cart.find(c => c.productId === currentModalProduct.id && c.weight === selectedVariant.weight);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({
+      productId: currentModalProduct.id,
+      name: currentModalProduct.name,
+      weight: selectedVariant.weight,
+      price: selectedVariant.price,
+      qty: 1
+    });
+  }
+  saveCart();
+  closeProductModal();
+};
+
+// ---------- سبد خرید ----------
+function saveCart() {
+  localStorage.setItem("shiraznuts_cart", JSON.stringify(cart));
+  renderCartBar();
+}
+
+function renderCartBar() {
+  const bar = document.getElementById("cart-bar");
+  const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+  const totalPrice = cart.reduce((s, c) => s + c.qty * c.price, 0);
+  if (totalQty > 0) {
+    bar.classList.add("show");
+    document.getElementById("cart-count").innerText = `${totalQty} محصول`;
+    document.getElementById("cart-total").innerText = `${totalPrice.toFixed(2)} ريال`;
+  } else {
+    bar.classList.remove("show");
+  }
+}
+
+window.openCartModal = function () {
+  renderCartItems();
+  document.getElementById("cart-modal-bg").classList.add("active");
+};
+window.closeCartModal = function () {
+  document.getElementById("cart-modal-bg").classList.remove("active");
+};
+
+function renderCartItems() {
+  const container = document.getElementById("cart-items");
+  container.innerHTML = "";
+  if (cart.length === 0) {
+    container.innerHTML = `<div class="empty-msg">سبد خرید خالی است</div>`;
+  }
+  cart.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = `
+      <div>
+        <div>${item.name} (${item.weight})</div>
+        <div style="color:#d4af37;font-size:13px">${item.price} ريال</div>
+      </div>
+      <div class="row" style="display:flex;align-items:center;gap:8px">
+        <div class="qty-btns" style="display:flex;gap:6px">
+          <button onclick="changeQty(${idx}, -1)">-</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty(${idx}, 1)">+</button>
+        </div>
+        <button onclick="removeFromCart(${idx})" style="background:#a33;color:#fff;border:none;border-radius:6px;padding:4px 8px">حذف</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+  const total = cart.reduce((s, c) => s + c.qty * c.price, 0);
+  document.getElementById("cart-total-line").innerText = `جمع کل: ${total.toFixed(2)} ريال`;
+}
+
+window.changeQty = function (idx, delta) {
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  saveCart();
+  renderCartItems();
+};
+window.removeFromCart = function (idx) {
+  cart.splice(idx, 1);
+  saveCart();
+  renderCartItems();
+};
+
+window.sendWhatsAppOrder = function () {
+  if (cart.length === 0) return;
+  let msg = "سلام، سفارش جدید:\n\n";
+  cart.forEach(item => {
+    msg += `${item.qty}× ${item.name} - ${item.weight}\n${(item.qty * item.price).toFixed(2)} ريال\n---------\n`;
+  });
+  const total = cart.reduce((s, c) => s + c.qty * c.price, 0);
+  msg += `\nجمع کل: ${total.toFixed(2)} ريال`;
+
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank");
+};
+
+// ---------- شروع ----------
+renderCartBar();
+loadCategories();
+loadProducts();
+</script>
+</body>
+</html>
