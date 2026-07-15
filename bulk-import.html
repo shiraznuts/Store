@@ -27,9 +27,9 @@
 
 <div id="import-box" style="display:none">
   <p>این ابزار ۴۷ محصول رو با ساختار جدید (قیمت کیلویی + مدل استاندارد) به Firestore اضافه می‌کنه.</p>
-  <p style="color:#e0c568">⚠️ توجه: قیمت هر کیلو از روی بزرگ‌ترین وزن موجود محاسبه شده. برای محصولاتی که «علبة بسعر 1 ريال» داشتن، اون بسته کوچیک ثابت فعلاً وارد نشده — بعداً می‌تونی دستی از پنل اضافه‌ش کنی.</p>
+  <p style="color:#e0c568">⚠️ توجه: قیمت هر کیلو از روی بزرگ‌ترین وزن موجود محاسبه شده.</p>
   <button id="import-btn" onclick="runImport()">شروع وارد کردن محصولات</button>
-  <button id="clear-btn" onclick="clearAllProducts()" style="background:#a33;color:#fff">حذف همه محصولات (قبل از وارد کردن دوباره)</button>
+  <button id="clear-btn" onclick="clearAllProducts()" style="background:#a33;color:#fff">حذف همه محصولات</button>
 </div>
 
 <div id="log"></div>
@@ -129,7 +129,7 @@ function weightToGrams(label) {
   const num = parseFloat(label);
   if (label.includes("كجم")) return num * 1000;
   if (label.includes("جم")) return num;
-  return null; // مثل "علبة بسعر 1 ريال"
+  return null;
 }
 
 function groupProducts(rows) {
@@ -143,7 +143,7 @@ function groupProducts(rows) {
 }
 
 window.clearAllProducts = async function () {
-  if (!confirm("مطمئنی می‌خوای همه محصولات پاک بشن؟ این کار قابل بازگشت نیست.")) return;
+  if (!confirm("مطمئنی می‌خوای همه محصولات پاک بشن؟")) return;
   const btn = document.getElementById("clear-btn");
   btn.disabled = true;
   logEl.innerHTML = "";
@@ -157,7 +157,7 @@ window.clearAllProducts = async function () {
       count++;
       log(`✔ حذف شد (${count}/${snap.size})`, "ok");
     }
-    log(`\n🎉 همه ${count} محصول پاک شدند. حالا می‌تونی دوباره "شروع وارد کردن محصولات" رو بزنی (فقط یک‌بار).`, "ok");
+    log(`\n🎉 همه ${count} محصول پاک شدند.`, "ok");
   } catch (err) {
     log("خطا: " + err.message, "err");
   }
@@ -179,7 +179,7 @@ window.runImport = async function () {
     log(`\nشروع وارد کردن ${products.length} محصول...`);
     let count = 0;
     for (const p of products) {
-      const entries = p.entries.sort((a,b) => b.grams - a.grams); // بزرگ‌ترین وزن اول
+      const entries = p.entries.sort((a,b) => b.grams - a.grams);
       const biggest = entries[0];
       const pricePerKg = Math.round((biggest.price / (biggest.grams/1000)) * 100) / 100;
       const presetWeights = entries.map(e => e.grams).sort((a,b)=>a-b);
@@ -198,6 +198,7 @@ window.runImport = async function () {
           allowCustomWeight: true
         }],
         featured: false,
+        new: false,
         active: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -206,7 +207,7 @@ window.runImport = async function () {
       log(`✔ (${count}/${products.length}) ${p.name} — ${pricePerKg} ريال/كيلو`, "ok");
     }
     log(`\n🎉 تمام شد! ${count} محصول وارد شدند.`, "ok");
-    log("نکته: می‌تونی از پنل مدیریت، عکس هر محصول رو اضافه کنی و قیمت‌ها رو در صورت نیاز دقیق‌تر کنی.", "warn");
+    log("نکته: می‌تونی از پنل مدیریت، عکس هر محصول رو اضافه کنی.", "warn");
   } catch (err) {
     log("خطا: " + err.message, "err");
   }
