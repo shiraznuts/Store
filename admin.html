@@ -41,8 +41,74 @@
   .saletype-switch { display:flex; gap:8px; margin-top:8px; }
   .saletype-switch button { flex:1; background:#1a1a1c; color:#ccc; }
   .saletype-switch button.active { background:#d4af37; color:#000; }
+  
+  .image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .image-gallery .image-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #333;
+  }
+  .image-gallery .image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .image-gallery .image-item .remove-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #a33;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+  }
+  .image-gallery .image-item .remove-img:hover {
+    transform: scale(1.15);
+    background: #c0392b;
+  }
+  
   .image-preview { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
-  .image-preview img { width:60px; height:60px; object-fit:cover; border-radius:8px; }
+  .image-preview img { width:60px; height:60px; object-fit:cover; border-radius:8px; border:2px solid #333; }
+  
+  .model-image-item {
+    position: relative;
+    display: inline-block;
+    margin: 4px;
+  }
+  .model-image-item .remove-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #a33;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
 </style>
 </head>
 <body>
@@ -81,7 +147,7 @@
       <input type="text" id="c-name" placeholder="مثلاً خشکبار">
       <label>ترتیب نمایش</label>
       <input type="number" id="c-order" value="1">
-      <label>دسته والد (اگه این یه زیردسته‌ست، مثلاً «دارک چاکلت» زیر «حلویات»)</label>
+      <label>دسته والد (اگه این یه زیردسته‌ست)</label>
       <select id="c-parent"><option value="">بدون والد (دسته اصلی)</option></select>
       <label>عکس دسته‌بندی</label>
       <input type="file" id="c-image-input" accept="image/*">
@@ -110,7 +176,7 @@
 
       <label>عکس‌های اصلی محصول</label>
       <input type="file" id="p-images-input" accept="image/*" multiple>
-      <div class="image-preview" id="p-images-preview"></div>
+      <div class="image-gallery" id="p-images-gallery"></div>
 
       <label>نوع فروش</label>
       <div class="saletype-switch">
@@ -118,12 +184,15 @@
         <button type="button" id="st-unit" onclick="setSaleType('unit')">عددی (تعدادی)</button>
       </div>
 
-      <label style="margin-top:16px">مدل‌های محصول (حداقل یکی — اگه محصول مدل نداره، فقط یک مدل با نام "استاندارد" بساز)</label>
+      <label style="margin-top:16px">مدل‌های محصول</label>
       <div id="models-container"></div>
       <button class="secondary" type="button" onclick="addModelRow()">+ افزودن مدل</button>
 
       <div class="toggle-row">
         <input type="checkbox" id="p-featured"> <span>محصول ویژه</span>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="p-new"> <span>محصول جدید</span>
       </div>
       <div class="toggle-row">
         <input type="checkbox" id="p-active" checked> <span>فعال (نمایش در سایت)</span>
@@ -153,7 +222,7 @@
       <label>عکس بنر</label>
       <input type="file" id="b-image-input" accept="image/*">
       <div class="image-preview" id="b-image-preview"></div>
-      <label>لینک (اختیاری — اگه بخوای با کلیک به یه دسته‌بندی بره)</label>
+      <label>لینک (اختیاری)</label>
       <select id="b-link"><option value="">بدون لینک</option></select>
       <label>ترتیب نمایش</label>
       <input type="number" id="b-order" value="1">
@@ -179,7 +248,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs,
-  deleteDoc, updateDoc, onSnapshot, query, orderBy
+  deleteDoc, updateDoc, onSnapshot, query, orderBy, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -250,7 +319,9 @@ async function uploadImageToCloudinary(file) {
   return data.secure_url;
 }
 
-// ---------- دسته‌بندی‌ها ----------
+// ============================================================
+// ===== دسته‌بندی‌ها =====
+// ============================================================
 let categoryImage = "";
 document.getElementById("c-image-input").addEventListener("change", async (e) => {
   const file = e.target.files[0];
@@ -361,7 +432,9 @@ function loadCategories() {
   });
 }
 
-// ---------- بنرها ----------
+// ============================================================
+// ===== بنرها =====
+// ============================================================
 let bannerImage = "";
 document.getElementById("b-image-input").addEventListener("change", async (e) => {
   const file = e.target.files[0];
@@ -438,7 +511,9 @@ function loadBanners() {
   });
 }
 
-// ---------- سفارش‌ها ----------
+// ============================================================
+// ===== سفارش‌ها =====
+// ============================================================
 function loadOrders() {
   const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
   onSnapshot(q, (snapshot) => {
@@ -473,8 +548,13 @@ window.updateOrderStatus = async function (id, status) {
   await updateDoc(doc(db, "orders", id), { status });
 };
 
-// ---------- مدل‌های محصول ----------
+// ============================================================
+// ===== محصولات =====
+// ============================================================
 let currentSaleType = "weight";
+let uploadedImages = [];
+let currentProductId = null;
+
 window.setSaleType = function (type) {
   currentSaleType = type;
   document.getElementById("st-weight").classList.toggle("active", type === "weight");
@@ -500,7 +580,9 @@ window.addModelRow = function (data = {}) {
     <input type="text" class="m-name" placeholder="مثلاً استاندارد / شیری / ترک" value="${data.name || ''}">
     <label>عکس مدل (اختیاری)</label>
     <input type="file" class="m-image-input" accept="image/*">
-    <div class="image-preview m-image-preview">${data.image ? `<img src="${data.image}">` : ''}</div>
+    <div class="image-gallery model-images" id="model-images-${id}">
+      ${data.image ? `<div class="image-item"><img src="${data.image}"><button class="remove-img" onclick="removeModelImage(this, '${id}')">✕</button></div>` : ''}
+    </div>
     <div class="fields-weight">
       <label>قیمت هر کیلو (ریال)</label>
       <input type="number" class="m-priceperkg" value="${data.pricePerKg || ''}">
@@ -520,18 +602,38 @@ window.addModelRow = function (data = {}) {
   `;
   container.appendChild(box);
 
+  // آپلود عکس مدل
   box.querySelector(".m-image-input").addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const preview = box.querySelector(".m-image-preview");
-    preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
     try {
       const url = await uploadImageToCloudinary(file);
       box.dataset.image = url;
+      const gallery = box.querySelector(".model-images");
+      const div = document.createElement("div");
+      div.className = "image-item";
+      div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeModelImage(this, '${id}')">✕</button>`;
+      gallery.appendChild(div);
     } catch (err) { alert("خطا در آپلود عکس مدل: " + err.message); }
+    e.target.value = "";
   });
 
   renderModelFields(box);
+};
+
+// حذف عکس مدل
+window.removeModelImage = function(btn, modelId) {
+  const item = btn.closest('.image-item');
+  if (item) {
+    item.remove();
+    const box = document.querySelector(`.model-box[data-mid="${modelId}"]`);
+    const remaining = box.querySelectorAll('.model-images .image-item');
+    if (remaining.length === 0) {
+      box.dataset.image = "";
+    } else {
+      box.dataset.image = remaining[0].querySelector('img').src;
+    }
+  }
 };
 
 function renderModelFields(box) {
@@ -559,36 +661,50 @@ function collectModels() {
   return models;
 }
 
-// ---------- عکس‌های محصول ----------
-let uploadedImages = [];
+// ===== عکس‌های محصول =====
 document.getElementById("p-images-input").addEventListener("change", async (e) => {
   const files = Array.from(e.target.files);
-  const preview = document.getElementById("p-images-preview");
+  const gallery = document.getElementById("p-images-gallery");
   for (const file of files) {
-    const tempImg = document.createElement("img");
-    tempImg.src = URL.createObjectURL(file);
-    preview.appendChild(tempImg);
     try {
       const url = await uploadImageToCloudinary(file);
       uploadedImages.push(url);
+      const div = document.createElement("div");
+      div.className = "image-item";
+      div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeProductImage(this, '${url}')">✕</button>`;
+      gallery.appendChild(div);
     } catch (err) { alert("خطا در آپلود عکس: " + err.message); }
   }
   e.target.value = "";
 });
 
-// ---------- محصولات ----------
+// حذف عکس محصول
+window.removeProductImage = function(btn, imageUrl) {
+  const item = btn.closest('.image-item');
+  if (item) {
+    item.remove();
+    const index = uploadedImages.indexOf(imageUrl);
+    if (index > -1) {
+      uploadedImages.splice(index, 1);
+    }
+  }
+};
+
+// ===== فرم محصول =====
 window.resetProductForm = function () {
   document.getElementById("product-id").value = "";
   document.getElementById("p-name").value = "";
   document.getElementById("p-desc").value = "";
   document.getElementById("p-featured").checked = false;
+  document.getElementById("p-new").checked = false;
   document.getElementById("p-active").checked = true;
   document.getElementById("models-container").innerHTML = "";
-  document.getElementById("p-images-preview").innerHTML = "";
+  document.getElementById("p-images-gallery").innerHTML = "";
   uploadedImages = [];
   document.getElementById("product-form-title").innerText = "افزودن محصول جدید";
   setSaleType("weight");
   addModelRow();
+  currentProductId = null;
 };
 
 window.saveProduct = async function () {
@@ -598,6 +714,7 @@ window.saveProduct = async function () {
   const categoryId = document.getElementById("p-category").value;
   const description = document.getElementById("p-desc").value.trim();
   const featured = document.getElementById("p-featured").checked;
+  const isNew = document.getElementById("p-new").checked;
   const active = document.getElementById("p-active").checked;
   const models = collectModels();
 
@@ -605,7 +722,7 @@ window.saveProduct = async function () {
   if (models.length === 0) { statusEl.innerHTML = `<div class="status-msg status-err">حداقل یک مدل اضافه کن</div>`; return; }
 
   const productData = {
-    name, categoryId, description, featured, active,
+    name, categoryId, description, featured, new: isNew, active,
     saleType: currentSaleType,
     models,
     images: uploadedImages,
@@ -624,21 +741,24 @@ window.editProduct = async function (id) {
   const snap = await getDoc(doc(db, "products", id));
   if (!snap.exists()) return;
   const p = snap.data();
+  currentProductId = id;
   document.getElementById("product-id").value = id;
   document.getElementById("p-name").value = p.name || "";
   document.getElementById("p-category").value = p.categoryId || "";
   document.getElementById("p-desc").value = p.description || "";
   document.getElementById("p-featured").checked = !!p.featured;
+  document.getElementById("p-new").checked = !!p.new;
   document.getElementById("p-active").checked = p.active !== false;
   document.getElementById("product-form-title").innerText = "ویرایش محصول";
 
   uploadedImages = p.images || [];
-  const preview = document.getElementById("p-images-preview");
-  preview.innerHTML = "";
+  const gallery = document.getElementById("p-images-gallery");
+  gallery.innerHTML = "";
   uploadedImages.forEach(url => {
-    const img = document.createElement("img");
-    img.src = url;
-    preview.appendChild(img);
+    const div = document.createElement("div");
+    div.className = "image-item";
+    div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeProductImage(this, '${url}')">✕</button>`;
+    gallery.appendChild(div);
   });
 
   setSaleType(p.saleType || "weight");
@@ -684,6 +804,7 @@ window.renderProductsList = function () {
           <strong>${p.name}</strong>
           <span class="badge ${p.active !== false ? 'on' : ''}">${p.active !== false ? 'فعال' : 'غیرفعال'}</span>
           ${p.featured ? '<span class="badge on">ویژه</span>' : ''}
+          ${p.new ? '<span class="badge on">جدید</span>' : ''}
           <span class="badge">${p.saleType === 'unit' ? 'عددی' : 'وزنی'}</span>
           <div style="font-size:13px;color:#aaa;margin-top:4px">${modelsText}</div>
         </div>
@@ -702,4 +823,4 @@ setSaleType("weight");
 addModelRow();
 </script>
 </body>
-</html>
+ </html>
