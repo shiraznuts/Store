@@ -17,7 +17,6 @@
   button.secondary { background:#333; color:#eee; }
   button.danger { background:#a33; color:#fff; }
   button.small { padding:6px 12px; font-size:13px; }
-  button.success { background:#2e7d32; color:#fff; }
   .login-box { width:100%; max-width:340px; }
   #admin-panel { display:none; padding:12px; padding-bottom:60px; }
   header.top { display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-bottom:1px solid #333; margin-bottom:10px; }
@@ -89,7 +88,6 @@
   .image-preview { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
   .image-preview img { width:60px; height:60px; object-fit:cover; border-radius:8px; border:2px solid #333; }
   
-  /* ===== استایل‌های جدید برای تخفیف‌ها ===== */
   .offer-card, .coupon-card {
     background: #141416;
     border: 1px solid #2a2a2c;
@@ -249,7 +247,7 @@
     <div id="banners-list"></div>
   </div>
 
-  <!-- ===== تب تخفیف‌ها (Offers) - جدید ===== -->
+  <!-- ===== تب تخفیف‌ها (Offers) ===== -->
   <div class="tab-content" id="tab-offers">
     <div class="card">
       <h3 id="offer-form-title">افزودن تخفیف ویژه</h3>
@@ -277,7 +275,7 @@
     <div id="offers-list"></div>
   </div>
 
-  <!-- ===== تب کدهای تخفیف (Coupons) - جدید ===== -->
+  <!-- ===== تب کدهای تخفیف (Coupons) ===== -->
   <div class="tab-content" id="tab-coupons">
     <div class="card">
       <h3 id="coupon-form-title">افزودن کد تخفیف</h3>
@@ -608,7 +606,7 @@ window.saveOffer = async function() {
   if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
   if (!startDate || !endDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ شروع و پایان را وارد کن</div>`; return; }
   
-  const data = { title, description, discountPercent, startDate, endDate, active };
+  const data = { title, description, discountPercent, startDate, endDate, active, createdAt: new Date().toISOString() };
   try {
     if (id) { await updateDoc(doc(db, "offers", id), data); }
     else { await addDoc(collection(db, "offers"), data); }
@@ -700,7 +698,7 @@ window.saveCoupon = async function() {
   if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
   if (!expiryDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ انقضا را وارد کن</div>`; return; }
   
-  const data = { code, discountPercent, maxUses, usedCount: 0, expiryDate, active };
+  const data = { code, discountPercent, maxUses, usedCount: 0, expiryDate, active, createdAt: new Date().toISOString() };
   try {
     if (id) { await updateDoc(doc(db, "coupons", id), data); }
     else { await addDoc(collection(db, "coupons"), data); }
