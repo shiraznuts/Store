@@ -382,12 +382,889 @@
   <div class="copyright">© 2026 Shiraz Nuts. جميع الحقوق محفوظة</div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // ===== تمام کدهای جاوااسکریپت اینجا قرار می‌گیرند =====
-  // (برای جلوگیری از خطای "عنصر وجود ندارد")
-  console.log("✅ صفحه بارگذاری شد");
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
+  authDomain: "shiraznuts-92e20.firebaseapp.com",
+  projectId: "shiraznuts-92e20",
+  storageBucket: "shiraznuts-92e20.firebasestorage.app",
+  messagingSenderId: "236719692703",
+  appId: "1:236719692703:web:2b7ed97a0a80aa1a903baa"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const WHATSAPP_NUMBER = "96898779009";
+
+let allCategories = [];
+let allProducts = [];
+let allOffers = [];
+let firstPurchaseSettings = null;
+let currentCategoryId = null;
+let currentTopCategoryId = null;
+let currentView = "home";
+let currentProduct = null;
+let currentModelIndex = 0;
+let currentWeight = null;
+let currentUnitQty = 1;
+let cart = JSON.parse(localStorage.getItem("shiraznuts_cart") || "[]");
+let currentUser = JSON.parse(localStorage.getItem("shiraznuts_user") || "null");
+let couponApplied = 0;
+let timerInterval = null;
+let pendingPhone = "";
+let pendingName = "";
+let verificationCode = "";
+
+function loadTheme() {
+  const dark = localStorage.getItem("shiraznuts_theme") === "dark";
+  if (dark) { document.body.classList.add("dark-mode"); document.getElementById("themeBtn").innerText = "☀️"; }
+}
+function toggleTheme() {
+  document.body.classList.toggle("dark-mode");
+  const isDark = document.body.classList.contains("dark-mode");
+  document.getElementById("themeBtn").innerText = isDark ? "☀️" : "🌙";
+  localStorage.setItem("shiraznuts_theme", isDark ? "dark" : "light");
+}
+window.toggleTheme = toggleTheme;
+
+window.addEventListener("scroll", () => {
+  const btn = document.querySelector(".back-to-top");
+  if (window.scrollY > 400) btn.classList.add("show");
+  else btn.classList.remove("show");
 });
+
+let slideIndex = 0;
+function initSlider() {
+  const slides = document.querySelectorAll(".hero-slider .slide");
+  const dots = document.getElementById("sliderDots");
+  if (!dots || slides.length === 0) return;
+  dots.innerHTML = "";
+  slides.forEach((_, i) => {
+    const dot = document.createElement("span");
+    dot.className = i === 0 ? "active" : "";
+    dot.onclick = () => goToSlide(i);
+    dots.appendChild(dot);
+  });
+  setInterval(() => { goToSlide((slideIndex + 1) % slides.length); }, 5000);
+}
+function goToSlide(idx) {
+  const slides = document.querySelectorAll(".hero-slider .slide");
+  const dots = document.querySelectorAll("#sliderDots span");
+  if (!slides.length || !dots.length) return;
+  slides.forEach(s => s.classList.remove("active"));
+  dots.forEach(d => d.classList.remove("active"));
+  slides[idx].classList.add("active");
+  dots[idx].classList.add("active");
+  slideIndex = idx;
+}
+window.goToSlide = goToSlide;
+
+async function loadOfferTimer() {
+  try {
+    const q = query(collection(db, "offers"), where("active", "==", true));
+    const snapshot = await getDocs(q);
+    const el = document.getElementById("specialOffer");
+    if (!el) return;
+    if (snapshot.empty) { el.style.display = "none"; return; }
+    const offer = snapshot.docs[0].data();
+    const descEl = document.getElementById("offerDesc");
+    if (descEl) descEl.innerHTML = offer.description || "خصم على جميع المنتجات";
+    const endDate = new Date(offer.endDate);
+    const now = new Date();
+    if (now > endDate) { el.style.display = "none"; return; }
+    el.style.display = "block";
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const now2 = Date.now();
+      const diff = Math.max(0, endDate.getTime() - now2);
+      const days = Math.floor(diff / (1000*60*60*24));
+      const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+      const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+      const seconds = Math.floor((diff % (1000*60)) / 1000);
+      const dEl = document.getElementById("timerDays");
+      const hEl = document.getElementById("timerHours");
+      const mEl = document.getElementById("timerMinutes");
+      const sEl = document.getElementById("timerSeconds");
+      if (dEl) dEl.textContent = String(days).padStart(2,"0");
+      if (hEl) hEl.textContent = String(hours).padStart(2,"0");
+      if (mEl) mEl.textContent = String(minutes).padStart(2,"0");
+      if (sEl) sEl.textContent = String(seconds).padStart(2,"0");
+      if (diff === 0) { clearInterval(timerInterval); if (el) el.style.display = "none"; }
+    }, 1000);
+  } catch (err) { console.error("خطأ في تحميل التخفيض:", err); }
+}
+
+async function loadFirstPurchaseSettings() {
+  try {
+    const docRef = doc(db, "settings", "firstPurchaseDiscount");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      firstPurchaseSettings = docSnap.data();
+    } else {
+      firstPurchaseSettings = { active: true, discountPercent: 10, minOrderAmount: 5, maxDiscountAmount: null, usedCount: 0, maxUses: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      await setDoc(docRef, firstPurchaseSettings);
+    }
+  } catch (err) { console.error("خطا في تحميل إعدادات الخصم الأول:", err); firstPurchaseSettings = { active: true, discountPercent: 10, minOrderAmount: 0 }; }
+}
+
+function getFirstPurchaseDiscount(cartTotal) {
+  if (!firstPurchaseSettings || !firstPurchaseSettings.active || !currentUser || currentUser.firstPurchaseDiscount !== true) return 0;
+  if (firstPurchaseSettings.minOrderAmount && cartTotal < firstPurchaseSettings.minOrderAmount) return 0;
+  if (firstPurchaseSettings.maxUses && firstPurchaseSettings.usedCount >= firstPurchaseSettings.maxUses) return 0;
+  let discount = firstPurchaseSettings.discountPercent / 100;
+  if (firstPurchaseSettings.maxDiscountAmount) {
+    const maxDiscount = firstPurchaseSettings.maxDiscountAmount;
+    const calculatedDiscount = cartTotal * discount;
+    if (calculatedDiscount > maxDiscount) discount = maxDiscount / cartTotal;
+  }
+  return discount;
+}
+
+function showToast(message, icon = "✅") {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `<span class="toast-icon">${icon}</span> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+}
+
+window.shareProduct = function(platform) {
+  const name = document.getElementById("pd-name");
+  const url = window.location.href;
+  const text = `🛒 ${name ? name.innerText : "منتج"} - Shiraz Nuts`;
+  let shareUrl = "";
+  if (platform === "whatsapp") shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
+  else if (platform === "telegram") shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+  else if (platform === "facebook") shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  else if (platform === "copy") { navigator.clipboard.writeText(url).then(() => showToast("تم نسخ الرابط", "📋")); return; }
+  if (shareUrl) window.open(shareUrl, "_blank");
+};
+
+window.applyCoupon = async function() {
+  const input = document.getElementById("couponInput");
+  const status = document.getElementById("couponStatus");
+  if (!input || !status) return;
+  const code = input.value.trim().toUpperCase();
+  if (!code) { status.innerHTML = "❌ الرجاء إدخال كود"; status.style.color = "#a33"; return; }
+  try {
+    const q = query(collection(db, "coupons"), where("code", "==", code), where("active", "==", true));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) { status.innerHTML = "❌ كود غير صحيح أو منتهي الصلاحية"; status.style.color = "#a33"; couponApplied = 0; renderCartItems(); return; }
+    const coupon = snapshot.docs[0].data();
+    const now = new Date();
+    const expiry = new Date(coupon.expiryDate);
+    if (now > expiry) { status.innerHTML = "❌ انتهت صلاحية الكود"; status.style.color = "#a33"; couponApplied = 0; renderCartItems(); return; }
+    if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) { status.innerHTML = "❌ تم استخدام الكود بالكامل"; status.style.color = "#a33"; couponApplied = 0; renderCartItems(); return; }
+    couponApplied = coupon.discountPercent / 100;
+    status.innerHTML = `✅ تم تطبيق خصم ${coupon.discountPercent}٪`;
+    status.style.color = "#4CA771";
+    renderCartItems();
+    showToast(`تم تطبيق خصم ${coupon.discountPercent}٪`, "🎉");
+  } catch (err) { status.innerHTML = "❌ خطأ: " + err.message; status.style.color = "#a33"; }
+};
+
+window.toggleSidebar = function() {
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("sidebarOverlay").classList.toggle("active");
+};
+
+function renderSidebarCategories() {
+  const container = document.getElementById("sidebar-categories");
+  if (!container) return;
+  container.innerHTML = "";
+  const mainCats = allCategories.filter(c => c.active !== false && !c.parentId);
+  mainCats.forEach(cat => {
+    const children = allCategories.filter(c => c.active !== false && c.parentId === cat.id);
+    const div = document.createElement("div");
+    div.innerHTML = `<div class="sidebar-link" onclick="openCategory('${cat.id}'); toggleSidebar();"><span class="icon">${cat.icon || "📌"}</span> ${cat.name}</div>${children.map(child => `<div class="sidebar-link sub" onclick="openCategory('${child.id}'); toggleSidebar();"><span class="icon">${child.icon || "•"}</span> ${child.name}</div>`).join("")}`;
+    container.appendChild(div);
+  });
+}
+
+function updateUserUI() {
+  const user = currentUser;
+  if (user) {
+    document.getElementById("userName").innerText = user.name || "عميل";
+    document.getElementById("userPhone").innerText = user.phone || "";
+    document.getElementById("loginMenuItem").style.display = "none";
+    document.getElementById("logoutMenuItem").style.display = "flex";
+    document.getElementById("profileBadge").style.display = "none";
+    document.getElementById("newsletterStatus").innerText = user.newsletter ? "✅" : "❌";
+    document.getElementById("editName").value = user.name || "";
+    document.getElementById("editPhone").value = user.phone || "";
+    document.getElementById("editEmail").value = user.email || "";
+  } else {
+    document.getElementById("userName").innerText = "زائر عزيز";
+    document.getElementById("userPhone").innerText = "تسجيل الدخول للاستفادة من العروض";
+    document.getElementById("loginMenuItem").style.display = "flex";
+    document.getElementById("logoutMenuItem").style.display = "none";
+    document.getElementById("profileBadge").style.display = "flex";
+  }
+}
+
+window.toggleUserPanel = function() {
+  document.getElementById("userPanel").classList.toggle("active");
+  if (document.getElementById("userPanel").classList.contains("active")) updateUserUI();
+};
+
+window.showLoginModal = function() {
+  document.getElementById("loginModal").classList.add("active");
+  document.getElementById("sendCodeBtn").style.display = "block";
+  document.getElementById("verifyRow").style.display = "none";
+  document.getElementById("loginStatus").innerText = "";
+  document.getElementById("verifyCode").value = "";
+};
+window.closeLoginModal = function() {
+  document.getElementById("loginModal").classList.remove("active");
+  document.getElementById("loginStatus").innerText = "";
+  document.getElementById("verifyCode").value = "";
+  pendingPhone = "";
+  pendingName = "";
+  verificationCode = "";
+};
+
+window.sendVerificationCode = async function() {
+  const phone = document.getElementById("loginPhone");
+  const name = document.getElementById("loginName");
+  const status = document.getElementById("loginStatus");
+  if (!phone || !status) return;
+  const p = phone.value.trim();
+  const n = name ? name.value.trim() : "";
+  if (!p || p.length < 7) { status.innerText = "الرجاء إدخال رقم هاتف صحيح"; return; }
+  if (!n) { status.innerText = "الرجاء إدخال الاسم"; return; }
+  pendingPhone = p;
+  pendingName = n;
+  verificationCode = String(Math.floor(100000 + Math.random() * 900000));
+  const msg = `🔐 كود التأكيد الخاص بك لـ Shiraz Nuts:\n\n${verificationCode}\n\nأدخل الكود في الموقع لإكمال التسجيل.`;
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+  document.getElementById("sendCodeBtn").style.display = "none";
+  document.getElementById("verifyRow").style.display = "flex";
+  status.innerText = "✅ تم إرسال الكود عبر واتساب. انتظر قليلاً ثم أدخل الكود.";
+  status.style.color = "#4CA771";
+};
+
+window.verifyCode = async function() {
+  const code = document.getElementById("verifyCode");
+  const status = document.getElementById("loginStatus");
+  if (!code || !status) return;
+  const c = code.value.trim();
+  if (!c) { status.innerText = "الرجاء إدخال الكود"; status.style.color = "#a33"; return; }
+  if (c !== verificationCode) { status.innerText = "❌ كود غير صحيح. حاول مرة أخرى."; status.style.color = "#a33"; return; }
+  try {
+    const q = query(collection(db, "users"), where("phone", "==", pendingPhone));
+    const snapshot = await getDocs(q);
+    let userData;
+    if (snapshot.empty) {
+      userData = { name: pendingName, phone: pendingPhone, email: "", verified: true, firstPurchaseDiscount: true, newsletter: false, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString() };
+      await addDoc(collection(db, "users"), userData);
+    } else {
+      userData = snapshot.docs[0].data();
+      await updateDoc(doc(db, "users", snapshot.docs[0].id), { lastLogin: new Date().toISOString(), verified: true });
+      if (pendingName && !userData.name) { await updateDoc(doc(db, "users", snapshot.docs[0].id), { name: pendingName }); userData.name = pendingName; }
+    }
+    currentUser = userData;
+    localStorage.setItem("shiraznuts_user", JSON.stringify(userData));
+    closeLoginModal();
+    updateUserUI();
+    showToast("مرحباً بك " + userData.name, "👋");
+    if (userData.firstPurchaseDiscount && firstPurchaseSettings && firstPurchaseSettings.active) showToast(`🎁 لديك خصم ${firstPurchaseSettings.discountPercent}% على أول طلب!`, "🎉");
+  } catch (err) { status.innerText = "خطأ: " + err.message; status.style.color = "#a33"; }
+};
+
+window.logoutUser = function() {
+  if (confirm("هل تريد تسجيل الخروج؟")) {
+    currentUser = null;
+    localStorage.removeItem("shiraznuts_user");
+    updateUserUI();
+    document.getElementById("userPanel").classList.remove("active");
+    showToast("تم تسجيل الخروج", "👋");
+  }
+};
+
+window.showOrders = function() {
+  if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
+  document.getElementById("ordersModal").classList.add("active");
+  loadOrdersList();
+};
+window.closeOrdersModal = function() { document.getElementById("ordersModal").classList.remove("active"); };
+
+async function loadOrdersList() {
+  const container = document.getElementById("ordersList");
+  if (!container) return;
+  container.innerHTML = "جاري التحميل...";
+  if (!currentUser) return;
+  try {
+    const q = query(collection(db, "orders"), where("phone", "==", currentUser.phone), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) { container.innerHTML = "<div class='empty-msg'>لا توجد طلبات سابقة</div>"; return; }
+    container.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const order = docSnap.data();
+      const itemsText = (order.items || []).map(i => `${i.name} (${i.variant})`).join("، ");
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `<div><div style="font-weight:bold;">📅 ${new Date(order.createdAt).toLocaleDateString("ar")}</div><div style="font-size:13px;color:#6b6154;">${itemsText}</div><div style="color:var(--gold);font-weight:bold;">${order.total} ريال</div><div style="font-size:12px;color:#8a7f6f;">الحالة: ${getOrderStatus(order.status)}</div>${order.firstPurchaseDiscount ? '<div style="font-size:11px;color:#4CA771;">🎁 تخفیف اولین خرید</div>' : ''}</div>`;
+      container.appendChild(div);
+    });
+  } catch (err) { container.innerHTML = "خطأ في تحميل الطلبات"; }
+}
+
+function getOrderStatus(status) {
+  const map = { pending: "في انتظار التأكيد", confirmed: "تم التأكيد", preparing: "جاري التحضير", sent: "تم الشحن", completed: "تم التسليم", cancelled: "ملغي" };
+  return map[status] || status;
+}
+
+window.showProfile = function() {
+  if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
+  document.getElementById("profileModal").classList.add("active");
+};
+window.closeProfileModal = function() { document.getElementById("profileModal").classList.remove("active"); };
+
+window.saveProfile = async function() {
+  if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
+  const name = document.getElementById("editName");
+  const email = document.getElementById("editEmail");
+  if (!name) return;
+  const n = name.value.trim();
+  const e = email ? email.value.trim() : "";
+  if (!n) { alert("الرجاء إدخال الاسم"); return; }
+  try {
+    const q = query(collection(db, "users"), where("phone", "==", currentUser.phone));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      await updateDoc(doc(db, "users", snapshot.docs[0].id), { name: n, email: e });
+      currentUser.name = n; currentUser.email = e;
+      localStorage.setItem("shiraznuts_user", JSON.stringify(currentUser));
+      updateUserUI();
+      alert("✅ تم حفظ التغييرات");
+      closeProfileModal();
+      showToast("تم تحديث الملف الشخصي", "✅");
+    }
+  } catch (err) { alert("خطأ: " + err.message); }
+};
+
+window.toggleNewsletter = function() {
+  if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
+  currentUser.newsletter = !currentUser.newsletter;
+  localStorage.setItem("shiraznuts_user", JSON.stringify(currentUser));
+  (async () => {
+    try {
+      const q = query(collection(db, "users"), where("phone", "==", currentUser.phone));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) await updateDoc(doc(db, "users", snapshot.docs[0].id), { newsletter: currentUser.newsletter });
+    } catch (err) { console.error("خطا في تحديث النشرة:", err); }
+  })();
+  updateUserUI();
+  showToast(currentUser.newsletter ? "تم الاشتراك في النشرة البريدية" : "تم إلغاء الاشتراك", currentUser.newsletter ? "✅" : "❌");
+};
+
+window.clearCart = function() {
+  if (cart.length === 0) return;
+  if (confirm("هل تريد إفراغ السلة؟")) { cart = []; saveCart(); renderCartItems(); showToast("تم إفراغ السلة", "🗑️"); }
+};
+
+// ===== تابع بارگذاری داده (بدون renderBanners) =====
+async function loadData() {
+  try {
+    console.log("🔄 شروع بارگذاری داده...");
+    
+    // بارگذاری دسته‌بندی‌ها
+    const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order")));
+    allCategories = []; 
+    catSnap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+    console.log(`✅ ${allCategories.length} دسته‌بندی بارگذاری شد`);
+    
+    // بارگذاری محصولات
+    const prodSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+    allProducts = []; 
+    prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+    console.log(`✅ ${allProducts.length} محصول بارگذاری شد`);
+    
+    // بارگذاری تخفیف‌ها
+    try {
+      const offerSnap = await getDocs(collection(db, "offers"));
+      allOffers = []; 
+      offerSnap.forEach(d => allOffers.push({ id: d.id, ...d.data() }));
+      console.log(`✅ ${allOffers.length} تخفیف بارگذاری شد`);
+    } catch(e) {
+      console.log("ℹ️ کلکسیون offers وجود ندارد یا خالی است");
+      allOffers = [];
+    }
+
+    // بارگذاری تنظیمات تخفیف اولین خرید
+    await loadFirstPurchaseSettings();
+
+    // نمایش همه چیز
+    renderCategoryGrid();
+    renderSidebarCategories();
+    renderPremiumProducts();
+    renderNewProducts();
+    updateUserUI();
+    initSlider();
+    loadOfferTimer();
+    loadTheme();
+    
+    console.log("🎉 بارگذاری کامل شد!");
+  } catch (error) {
+    console.error("❌ خطا در بارگذاری داده:", error);
+    showToast("خطا في اتصال قاعدة البيانات - تأكد من الاتصال بالإنترنت", "❌");
+  }
+}
+
+function getProductPriceWithDiscount(product, originalPrice) {
+  const now = new Date();
+  let discount = 0;
+  for (const offer of allOffers) {
+    if (!offer.active) continue;
+    const start = new Date(offer.startDate);
+    const end = new Date(offer.endDate);
+    if (now < start || now > end) continue;
+    if (offer.categoryId && offer.categoryId !== product.categoryId) continue;
+    if (offer.discountPercent > discount) discount = offer.discountPercent;
+  }
+  if (discount > 0) return { price: Math.round(originalPrice * (1 - discount / 100) * 100) / 100, discount: discount, hasDiscount: true };
+  return { price: originalPrice, discount: 0, hasDiscount: false };
+}
+
+function renderPremiumProducts() {
+  const container = document.getElementById("premiumScroll");
+  if (!container) return;
+  container.innerHTML = "";
+  const featured = allProducts.filter(p => p.active !== false && p.featured === true);
+  if (featured.length === 0) { const sec = document.getElementById("premiumSection"); if (sec) sec.style.display = "none"; return; }
+  featured.slice(0, 10).forEach(p => {
+    const img = (p.images && p.images[0]) || "";
+    const originalPrice = cheapestModelPrice(p).price;
+    const priceInfo = getProductPriceWithDiscount(p, originalPrice);
+    const card = document.createElement("div");
+    card.className = "premium-card";
+    card.onclick = () => openProduct(p);
+    card.innerHTML = `<img src="${img}" loading="lazy" alt="${p.name}"><div class="info"><div class="name">${p.name}</div><div class="price">${priceInfo.hasDiscount ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:12px;">${originalPrice} ريال</span> ${priceInfo.price} ريال<span style="display:block;font-size:10px;color:#a33;">-${priceInfo.discount}%</span>` : `${priceInfo.price} ريال`}</div></div>`;
+    container.appendChild(card);
+  });
+}
+
+function renderNewProducts() {
+  const container = document.getElementById("newScroll");
+  if (!container) return;
+  container.innerHTML = "";
+  const news = allProducts.filter(p => p.active !== false && p.new === true);
+  if (news.length === 0) { const sec = document.getElementById("newSection"); if (sec) sec.style.display = "none"; return; }
+  news.slice(0, 8).forEach(p => {
+    const img = (p.images && p.images[0]) || "";
+    const originalPrice = cheapestModelPrice(p).price;
+    const priceInfo = getProductPriceWithDiscount(p, originalPrice);
+    const card = document.createElement("div");
+    card.className = "new-card";
+    card.onclick = () => openProduct(p);
+    card.innerHTML = `<img src="${img}" loading="lazy" alt="${p.name}"><div class="name">${p.name}</div><div class="price">${priceInfo.hasDiscount ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:12px;">${originalPrice} ريال</span> ${priceInfo.price} ريال` : `${priceInfo.price} ريال`}</div><span class="badge-new-sm">جديد</span>${priceInfo.hasDiscount ? `<span style="display:block;font-size:9px;color:#a33;">-${priceInfo.discount}%</span>` : ''}`;
+    container.appendChild(card);
+  });
+}
+
+const CAT_COLORS = ["#3E7CB1","#4CA771","#E08E2B","#C15C77","#8B6BB1","#3FA9A3","#D9834F","#5B8DBE","#C4914E","#6B9E5E"];
+const CAT_ENGLISH = { nuts: "Nuts", saffron: "Saffron", coffee: "Coffee", sweets: "Sweets", tea: "Tea" };
+
+function renderCategoryGrid() {
+  const grid = document.getElementById("cats-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  allCategories.filter(c => c.active !== false && !c.parentId).forEach((cat, idx) => {
+    const color = CAT_COLORS[idx % CAT_COLORS.length];
+    const englishName = CAT_ENGLISH[cat.id] || "";
+    const card = document.createElement("div");
+    card.className = "cat-card";
+    card.style.background = color;
+    card.onclick = () => openCategory(cat.id);
+    const imgHtml = cat.image ? `<img class="circle-img" src="${cat.image}" alt="${cat.name}">` : `<div class="circle-fallback">${cat.icon || "🛍️"}</div>`;
+    card.innerHTML = `${imgHtml}<div class="name-ar">${cat.name}</div>${englishName ? `<div class="name-en">${englishName}</div>` : ""}`;
+    grid.appendChild(card);
+  });
+}
+
+function catName(id) { const c = allCategories.find(c => c.id === id); return c ? c.name : ""; }
+
+window.openCategory = function(categoryId) {
+  currentTopCategoryId = categoryId;
+  document.getElementById("home-page").style.display = "none";
+  document.getElementById("category-page").style.display = "block";
+  window.scrollTo(0,0);
+  const children = allCategories.filter(c => c.active !== false && c.parentId === categoryId);
+  if (children.length > 0) {
+    currentView = "subcats";
+    document.getElementById("category-title").innerText = catName(categoryId);
+    renderSubcategoryGrid(children);
+  } else {
+    currentView = "products";
+    currentCategoryId = categoryId;
+    document.getElementById("category-title").innerText = catName(categoryId);
+    renderProductsGrid();
+  }
+};
+
+window.openSubcategory = function(subId) {
+  currentView = "products";
+  currentCategoryId = subId;
+  document.getElementById("category-title").innerText = catName(subId);
+  renderProductsGrid();
+  window.scrollTo(0,0);
+};
+
+window.goBackCategoryPage = function() {
+  if (currentView === "products") {
+    const children = allCategories.filter(c => c.active !== false && c.parentId === currentTopCategoryId);
+    if (children.length > 0) {
+      currentView = "subcats";
+      document.getElementById("category-title").innerText = catName(currentTopCategoryId);
+      renderSubcategoryGrid(children);
+      window.scrollTo(0,0);
+      return;
+    }
+  }
+  goHome();
+};
+
+function renderSubcategoryGrid(children) {
+  const grid = document.getElementById("products-grid");
+  if (!grid) return;
+  grid.className = "cat-grid";
+  grid.innerHTML = "";
+  children.forEach((cat, idx) => {
+    const color = CAT_COLORS[idx % CAT_COLORS.length];
+    const card = document.createElement("div");
+    card.className = "cat-card";
+    card.style.background = color;
+    card.onclick = () => openSubcategory(cat.id);
+    const imgHtml = cat.image ? `<img class="circle-img" src="${cat.image}" alt="${cat.name}">` : `<div class="circle-fallback">${cat.icon || "🛍️"}</div>`;
+    card.innerHTML = `${imgHtml}<div class="name-ar">${cat.name}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+window.goHome = function() {
+  currentView = "home";
+  document.getElementById("home-page").style.display = "block";
+  document.getElementById("category-page").style.display = "none";
+};
+
+function cheapestModelPrice(p) {
+  if (!p.models || p.models.length === 0) return { price: 0 };
+  if (p.saleType === "unit") {
+    const m = p.models.slice().sort((a,b)=>a.price-b.price)[0];
+    return { price: m.price };
+  } else {
+    const m = p.models.slice().sort((a,b)=>a.pricePerKg-b.pricePerKg)[0];
+    const preset = (m.presetWeights && m.presetWeights[0]) || 1000;
+    return { price: Math.round((m.pricePerKg * preset / 1000) * 100) / 100 };
+  }
+}
+
+function renderProductsGrid() {
+  const grid = document.getElementById("products-grid");
+  if (!grid) return;
+  grid.className = "grid";
+  grid.innerHTML = "";
+  const filtered = allProducts.filter(p => p.active !== false && p.categoryId === currentCategoryId);
+  if (filtered.length === 0) { grid.innerHTML = `<div class="empty-msg">لا توجد منتجات في هذا القسم</div>`; return; }
+  filtered.forEach(p => {
+    const img = (p.images && p.images[0]) || (p.models && p.models[0] && p.models[0].image) || "";
+    const originalPrice = cheapestModelPrice(p).price;
+    const priceInfo = getProductPriceWithDiscount(p, originalPrice);
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.onclick = () => openProduct(p);
+    const priceText = priceInfo.hasDiscount ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:12px;">${originalPrice} ريال</span> <span style="color:#a33;font-weight:bold;">${priceInfo.price} ريال</span>` : `${priceInfo.price} ريال`;
+    card.innerHTML = `<div class="card-img-wrap">${p.featured ? '<span class="badge-featured">⭐ مميز</span>' : ""}${p.new ? '<span class="badge-new">جديد</span>' : ""}${priceInfo.hasDiscount ? `<span class="badge-discount">-${priceInfo.discount}%</span>` : ""}<div class="img-inner"><img src="${img}" loading="lazy" alt="${p.name}"></div></div><div class="info"><div class="name">${p.name}</div><div class="price-row"><div class="price">${priceText}</div></div></div>`;
+    grid.appendChild(card);
+  });
+}
+
+window.openProduct = function(p) {
+  currentProduct = p;
+  currentModelIndex = 0;
+  currentWeight = null;
+  currentUnitQty = 1;
+  document.getElementById("category-page").style.display = "none";
+  document.getElementById("product-page").style.display = "block";
+  window.scrollTo(0,0);
+  document.getElementById("pd-name").innerText = p.name;
+  document.getElementById("pd-desc").innerText = p.description || "";
+  const imgs = (p.images && p.images.length) ? p.images : [(p.models[0] && p.models[0].image) || ""];
+  document.getElementById("mainProductImage").src = imgs[0] || "";
+  const thumbnails = document.getElementById("productThumbnails");
+  thumbnails.innerHTML = "";
+  imgs.forEach((url, idx) => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = idx === 0 ? "active" : "";
+    img.onclick = () => {
+      document.getElementById("mainProductImage").src = url;
+      document.querySelectorAll("#productThumbnails img").forEach(i => i.classList.remove("active"));
+      img.classList.add("active");
+    };
+    thumbnails.appendChild(img);
+  });
+  const modelsTabs = document.getElementById("pd-models");
+  modelsTabs.innerHTML = "";
+  (p.models || []).forEach((m, idx) => {
+    const btn = document.createElement("button");
+    btn.innerText = m.name;
+    btn.className = idx === 0 ? "active" : "";
+    btn.onclick = () => {
+      currentModelIndex = idx;
+      document.querySelectorAll("#pd-models button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentWeight = null;
+      renderModelOptions();
+    };
+    modelsTabs.appendChild(btn);
+  });
+  document.getElementById("weight-section").style.display = p.saleType === "weight" ? "block" : "none";
+  document.getElementById("unit-section").style.display = p.saleType === "unit" ? "block" : "none";
+  renderModelOptions();
+  renderRelatedProducts(p);
+};
+
+function renderModelOptions() {
+  const p = currentProduct;
+  if (!p || !p.models || !p.models.length) return;
+  const model = p.models[currentModelIndex];
+  if (!model) return;
+  document.getElementById("pd-custom-weight").value = "";
+  document.getElementById("pd-custom-price").value = "";
+  if (p.saleType === "weight") {
+    const optionsEl = document.getElementById("pd-weight-options");
+    if (!optionsEl) return;
+    optionsEl.innerHTML = "";
+    (model.presetWeights || []).forEach(w => {
+      const btn = document.createElement("button");
+      btn.innerText = w >= 1000 ? (w/1000) + " كجم" : w + " جم";
+      btn.onclick = () => {
+        currentWeight = w;
+        document.querySelectorAll("#pd-weight-options button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("pd-custom-weight").value = "";
+        document.getElementById("pd-custom-price").value = "";
+        updateLivePrice();
+      };
+      optionsEl.appendChild(btn);
+    });
+    const box = document.getElementById("pd-custom-weight-box");
+    if (box) box.style.display = model.allowCustomWeight ? "flex" : "none";
+    if (model.presetWeights && model.presetWeights.length) {
+      currentWeight = model.presetWeights[0];
+      if (optionsEl.firstChild) optionsEl.firstChild.classList.add("active");
+    }
+  } else {
+    currentUnitQty = 1;
+    document.getElementById("pd-unit-qty").innerText = 1;
+  }
+  updateLivePrice();
+}
+
+function renderRelatedProducts(p) {
+  const container = document.getElementById("relatedScroll");
+  if (!container) return;
+  container.innerHTML = "";
+  const related = allProducts.filter(pr => pr.id !== p.id && pr.categoryId === p.categoryId && pr.active !== false);
+  if (related.length === 0) { const sec = document.getElementById("relatedSection"); if (sec) sec.style.display = "none"; return; }
+  related.slice(0, 6).forEach(pr => {
+    const img = (pr.images && pr.images[0]) || "";
+    const originalPrice = cheapestModelPrice(pr).price;
+    const priceInfo = getProductPriceWithDiscount(pr, originalPrice);
+    const card = document.createElement("div");
+    card.className = "related-card";
+    card.onclick = () => openProduct(pr);
+    card.innerHTML = `<img src="${img}" loading="lazy" alt="${pr.name}"><div class="name">${pr.name}</div><div class="price">${priceInfo.hasDiscount ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:12px;">${originalPrice} ريال</span> ${priceInfo.price} ريال` : `${priceInfo.price} ريال`}</div>`;
+    container.appendChild(card);
+  });
+}
+
+window.onCustomWeightInput = function() {
+  const val = parseFloat(document.getElementById("pd-custom-weight").value);
+  const p = currentProduct;
+  if (!p || !p.models || !p.models.length) return;
+  const model = p.models[currentModelIndex];
+  if (!model) return;
+  if (val > 0) {
+    currentWeight = val;
+    document.querySelectorAll("#pd-weight-options button").forEach(b => b.classList.remove("active"));
+    const price = Math.round((model.pricePerKg * val / 1000) * 100) / 100;
+    document.getElementById("pd-custom-price").value = price;
+    updateLivePrice();
+  } else {
+    currentWeight = null;
+    document.getElementById("pd-custom-price").value = "";
+    updateLivePrice();
+  }
+};
+
+window.onCustomPriceInput = function() {
+  const val = parseFloat(document.getElementById("pd-custom-price").value);
+  const p = currentProduct;
+  if (!p || !p.models || !p.models.length) return;
+  const model = p.models[currentModelIndex];
+  if (!model || !model.pricePerKg) return;
+  if (val > 0 && model.pricePerKg > 0) {
+    const grams = Math.round((val / model.pricePerKg) * 1000);
+    currentWeight = grams;
+    document.querySelectorAll("#pd-weight-options button").forEach(b => b.classList.remove("active"));
+    document.getElementById("pd-custom-weight").value = grams;
+    updateLivePrice();
+  } else {
+    currentWeight = null;
+    document.getElementById("pd-custom-weight").value = "";
+    updateLivePrice();
+  }
+};
+
+window.changeUnitQty = function(delta) {
+  currentUnitQty = Math.max(1, currentUnitQty + delta);
+  document.getElementById("pd-unit-qty").innerText = currentUnitQty;
+  updateLivePrice();
+};
+
+function updateLivePrice() {
+  const p = currentProduct;
+  if (!p || !p.models || !p.models.length) return;
+  const model = p.models[currentModelIndex];
+  if (!model) return;
+  let price = 0;
+  if (p.saleType === "weight") {
+    price = currentWeight ? Math.round((model.pricePerKg * currentWeight / 1000) * 100) / 100 : 0;
+  } else {
+    price = Math.round(model.price * currentUnitQty * 100) / 100;
+  }
+  const priceInfo = getProductPriceWithDiscount(p, price);
+  const el = document.getElementById("pd-price-live");
+  if (!el) return;
+  el.innerHTML = priceInfo.hasDiscount ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:20px;">${price} ريال</span> ${priceInfo.price} <small>ريال</small> <span style="display:block;font-size:14px;color:#a33;">-${priceInfo.discount}% تخفیف</span>` : price + " <small>ريال</small>";
+}
+
+window.goBackFromProduct = function() {
+  document.getElementById("product-page").style.display = "none";
+  document.getElementById("category-page").style.display = "block";
+};
+
+window.addToCart = function() {
+  const p = currentProduct;
+  if (!p || !p.models || !p.models.length) return;
+  const model = p.models[currentModelIndex];
+  if (!model) return;
+  let item;
+  if (p.saleType === "weight") {
+    if (!currentWeight) { alert("الرجاء اختيار الوزن"); return; }
+    const price = Math.round((model.pricePerKg * currentWeight / 1000) * 100) / 100;
+    item = { productId: p.id, name: p.name, model: model.name, variant: currentWeight >= 1000 ? (currentWeight/1000)+" كجم" : currentWeight+" جم", unitPrice: price, qty: 1, lineTotal: price };
+  } else {
+    const price = Math.round(model.price * currentUnitQty * 100) / 100;
+    item = { productId: p.id, name: p.name, model: model.name, variant: currentUnitQty + " عدد", unitPrice: model.price, qty: currentUnitQty, lineTotal: price };
+  }
+  const existing = cart.find(c => c.productId === item.productId && c.model === item.model && c.variant === item.variant);
+  if (existing) { existing.qty += item.qty; existing.lineTotal += item.lineTotal; }
+  else { cart.push(item); }
+  saveCart();
+  goBackFromProduct();
+  showToast("تمت إضافة " + item.name + " إلى السلة", "🛒");
+};
+
+function saveCart() {
+  localStorage.setItem("shiraznuts_cart", JSON.stringify(cart));
+  renderCartBar();
+}
+function renderCartBar() {
+  const bar = document.getElementById("cart-bar");
+  if (!bar) return;
+  const totalQty = cart.reduce((s,c)=>s+ (c.qty || 1), 0);
+  const totalPrice = cart.reduce((s,c)=>s+c.lineTotal, 0);
+  if (totalQty > 0) {
+    bar.classList.add("show");
+    document.getElementById("cart-count").innerText = totalQty + " منتج";
+    document.getElementById("cart-total").innerText = totalPrice.toFixed(2) + " ريال";
+  } else { bar.classList.remove("show"); }
+}
+window.openCartModal = function() { renderCartItems(); document.getElementById("cart-modal-bg").classList.add("active"); };
+window.closeCartModal = function() { document.getElementById("cart-modal-bg").classList.remove("active"); };
+
+function renderCartItems() {
+  const container = document.getElementById("cart-items");
+  if (!container) return;
+  container.innerHTML = "";
+  if (cart.length === 0) container.innerHTML = `<div class="empty-msg">السلة فارغة</div>`;
+  let total = cart.reduce((s,c)=>s+c.lineTotal, 0);
+  let discountApplied = 0;
+  let discountType = "";
+  const firstPurchaseDisc = getFirstPurchaseDiscount(total);
+  if (firstPurchaseDisc > 0) {
+    discountApplied = firstPurchaseDisc;
+    discountType = "🎁 تخفیف اولین خرید";
+    document.getElementById("firstPurchaseBadge").style.display = "block";
+  } else {
+    document.getElementById("firstPurchaseBadge").style.display = "none";
+  }
+  if (couponApplied > discountApplied) {
+    discountApplied = couponApplied;
+    discountType = "🎫 كود خصم";
+  }
+  if (discountApplied > 0) total = total * (1 - discountApplied);
+  cart.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "cart-item";
+    row.innerHTML = `<div><div>${item.name} - ${item.model} (${item.variant})</div><div style="color:var(--gold);font-size:13px;">${item.lineTotal.toFixed(2)} ريال</div></div><button onclick="removeFromCart(${idx})" style="background:#a33;color:#fff;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;">حذف</button>`;
+    container.appendChild(row);
+  });
+  let discountText = discountApplied > 0 ? ` (${discountType} - ${Math.round(discountApplied * 100)}%)` : "";
+  document.getElementById("cart-total-line").innerHTML = `المجموع: ${total.toFixed(2)} ريال${discountText}`;
+}
+window.removeFromCart = function(idx) { cart.splice(idx,1); saveCart(); renderCartItems(); };
+
+window.sendWhatsAppOrder = async function() {
+  if (cart.length === 0) return;
+  const customerName = document.getElementById("customer-name");
+  const customerPhone = document.getElementById("customer-phone");
+  const name = (customerName ? customerName.value.trim() : "") || (currentUser ? currentUser.name : "");
+  const phone = (customerPhone ? customerPhone.value.trim() : "") || (currentUser ? currentUser.phone : "");
+  if (!name || !phone) { alert("الرجاء إدخال الاسم ورقم الهاتف"); return; }
+  let total = cart.reduce((s,c)=>s+c.lineTotal, 0);
+  let discountApplied = 0;
+  let discountType = "";
+  const firstPurchaseDisc = getFirstPurchaseDiscount(total);
+  if (firstPurchaseDisc > 0) { discountApplied = firstPurchaseDisc; discountType = "🎁 تخفیف اولین خرید"; }
+  if (couponApplied > discountApplied) { discountApplied = couponApplied; discountType = "🎫 كود خصم"; }
+  if (discountApplied > 0) total = total * (1 - discountApplied);
+  total = Math.round(total * 100) / 100;
+  let usedFirstPurchase = false;
+  if (currentUser && currentUser.firstPurchaseDiscount === true && firstPurchaseDisc > 0) usedFirstPurchase = true;
+  try {
+    await addDoc(collection(db, "orders"), { customerName: name, phone: phone, items: cart, total: total, status: "pending", couponApplied: couponApplied > 0 ? couponApplied : 0, firstPurchaseDiscount: usedFirstPurchase, discountType: discountType, createdAt: new Date().toISOString() });
+    if (usedFirstPurchase) {
+      currentUser.firstPurchaseDiscount = false;
+      localStorage.setItem("shiraznuts_user", JSON.stringify(currentUser));
+      const q = query(collection(db, "users"), where("phone", "==", currentUser.phone));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) { await updateDoc(doc(db, "users", snapshot.docs[0].id), { firstPurchaseDiscount: false }); }
+      if (firstPurchaseSettings) { firstPurchaseSettings.usedCount = (firstPurchaseSettings.usedCount || 0) + 1; await updateDoc(doc(db, "settings", "firstPurchaseDiscount"), { usedCount: firstPurchaseSettings.usedCount }); }
+    }
+  } catch (err) { console.error("خطأ في حفظ الطلب:", err); }
+  let msg = `مرحباً، طلب جديد من ${name}:\n\n`;
+  cart.forEach(item => { msg += `${item.name} - ${item.model} (${item.variant})\n${item.lineTotal.toFixed(2)} ريال\n---------\n`; });
+  msg += `\nالمجموع: ${total.toFixed(2)} ريال${discountApplied > 0 ? ` (${discountType} - ${Math.round(discountApplied*100)}%)` : ""}\nرقم الهاتف: ${phone}`;
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+  cart = []; couponApplied = 0; saveCart(); closeCartModal(); showToast("تم إرسال الطلب بنجاح", "📤");
+};
+
+window.showFeatured = function() { alert("قريباً سيتم عرض الأكثر مبيعاً"); };
+window.showNew = function() { alert("قريباً سيتم عرض المنتجات الجديدة"); };
+window.showGifts = function() { alert("قريباً سيتم عرض باقات الهدايا"); };
+window.openPage = function(page) { alert("صفحة " + page + " قريباً"); };
+
+renderCartBar();
+loadData();
 </script>
 </body>
-</html>
+                                                                                                                                                                                                                                                                                                                                                                                   </html>
