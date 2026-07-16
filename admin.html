@@ -17,6 +17,7 @@
   button.secondary { background:#333; color:#eee; }
   button.danger { background:#a33; color:#fff; }
   button.small { padding:6px 12px; font-size:13px; }
+  button.success { background:#2e7d32; color:#fff; }
   .login-box { width:100%; max-width:340px; }
   #admin-panel { display:none; padding:12px; padding-bottom:60px; }
   header.top { display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-bottom:1px solid #333; margin-bottom:10px; }
@@ -118,6 +119,9 @@
   .status-badge.active { background: #14331e; color: #7fd99a; }
   .status-badge.inactive { background: #331414; color: #ff9a9a; }
   .status-badge.expired { background: #332211; color: #e0a040; }
+  
+  .fp-setting-row { display:flex; gap:12px; flex-wrap:wrap; }
+  .fp-setting-row > div { flex:1; min-width:120px; }
 </style>
 </head>
 <body>
@@ -249,6 +253,7 @@
 
   <!-- ===== تب تخفیف‌ها (Offers) ===== -->
   <div class="tab-content" id="tab-offers">
+    <!-- تخفیف‌های ویژه -->
     <div class="card">
       <h3 id="offer-form-title">افزودن تخفیف ویژه</h3>
       <input type="hidden" id="offer-id">
@@ -258,6 +263,8 @@
       <input type="text" id="o-desc" placeholder="مثلاً خصم ۳۰٪ على جميع المكسرات">
       <label>درصد تخفیف</label>
       <input type="number" id="o-discount" placeholder="مثلاً 30" min="1" max="100">
+      <label>دسته‌بندی مورد نظر (اختیاری - خالی = همه محصولات)</label>
+      <select id="o-category"><option value="">همه محصولات</option></select>
       <label>تاریخ شروع</label>
       <input type="datetime-local" id="o-start">
       <label>تاریخ پایان</label>
@@ -271,7 +278,41 @@
       </div>
       <div id="offer-status"></div>
     </div>
-    <h3 style="color:#d4af37">لیست تخفیف‌ها</h3>
+
+    <!-- تخفیف اولین خرید -->
+    <div class="card" style="border-color:#4CA771;">
+      <h3 style="color:#4CA771;">🎁 تخفیف اولین خرید</h3>
+      <div id="firstPurchaseSettings">
+        <div class="toggle-row">
+          <input type="checkbox" id="fp-active" checked> <span>فعال</span>
+        </div>
+        <div class="fp-setting-row">
+          <div>
+            <label>درصد تخفیف</label>
+            <input type="number" id="fp-discount" value="10" min="1" max="100">
+          </div>
+          <div>
+            <label>حداقل مبلغ سفارش (ريال)</label>
+            <input type="number" id="fp-minOrder" value="5" min="0">
+          </div>
+          <div>
+            <label>حداکثر مبلغ تخفیف (ريال - خالی = نامحدود)</label>
+            <input type="number" id="fp-maxDiscount" placeholder="مثلاً 3">
+          </div>
+          <div>
+            <label>حداکثر تعداد استفاده (خالی = نامحدود)</label>
+            <input type="number" id="fp-maxUses" placeholder="مثلاً 100">
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:13px;color:#888;">
+          تعداد استفاده‌شده: <span id="fp-usedCount">0</span>
+        </div>
+        <button onclick="saveFirstPurchaseSettings()" style="background:#4CA771;color:#fff;">ذخیره تنظیمات تخفیف اولین خرید</button>
+        <div id="fp-status"></div>
+      </div>
+    </div>
+
+    <h3 style="color:#d4af37">لیست تخفیف‌های ویژه</h3>
     <div id="offers-list"></div>
   </div>
 
@@ -355,6 +396,7 @@ onAuthStateChanged(auth, async (user) => {
       loadOrders();
       loadOffers();
       loadCoupons();
+      loadFirstPurchaseSettings();
     } else {
       alert("این حساب دسترسی مدیریت ندارد.");
       await signOut(auth);
@@ -453,10 +495,12 @@ function loadCategories() {
     const selectEl = document.getElementById("p-category");
     const bLinkEl = document.getElementById("b-link");
     const parentEl = document.getElementById("c-parent");
+    const offerCatEl = document.getElementById("o-category");
     listEl.innerHTML = "";
     selectEl.innerHTML = "";
     if (bLinkEl) bLinkEl.innerHTML = '<option value="">بدون لینک</option>';
     if (parentEl) parentEl.innerHTML = '<option value="">بدون والد (دسته اصلی)</option>';
+    if (offerCatEl) offerCatEl.innerHTML = '<option value="">همه محصولات</option>';
     allCategoriesCache = [];
     snapshot.forEach(docSnap => {
       const cat = docSnap.data();
@@ -481,6 +525,13 @@ function loadCategories() {
       opt.value = docSnap.id;
       opt.textContent = cat.name;
       selectEl.appendChild(opt);
+      
+      if (offerCatEl) {
+        const optOffer = document.createElement("option");
+        optOffer.value = docSnap.id;
+        optOffer.textContent = cat.name;
+        offerCatEl.appendChild(optOffer);
+      }
 
       if (parentEl && !cat.parentId) {
         const optP = document.createElement("option");
@@ -586,6 +637,7 @@ window.resetOfferForm = function() {
   document.getElementById("o-title").value = "";
   document.getElementById("o-desc").value = "";
   document.getElementById("o-discount").value = "";
+  document.getElementById("o-category").value = "";
   document.getElementById("o-start").value = "";
   document.getElementById("o-end").value = "";
   document.getElementById("o-active").checked = true;
@@ -597,6 +649,7 @@ window.saveOffer = async function() {
   const title = document.getElementById("o-title").value.trim();
   const description = document.getElementById("o-desc").value.trim();
   const discountPercent = parseInt(document.getElementById("o-discount").value) || 0;
+  const categoryId = document.getElementById("o-category").value || null;
   const startDate = document.getElementById("o-start").value;
   const endDate = document.getElementById("o-end").value;
   const active = document.getElementById("o-active").checked;
@@ -606,7 +659,7 @@ window.saveOffer = async function() {
   if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
   if (!startDate || !endDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ شروع و پایان را وارد کن</div>`; return; }
   
-  const data = { title, description, discountPercent, startDate, endDate, active, createdAt: new Date().toISOString() };
+  const data = { title, description, discountPercent, categoryId, startDate, endDate, active, createdAt: new Date().toISOString() };
   try {
     if (id) { await updateDoc(doc(db, "offers", id), data); }
     else { await addDoc(collection(db, "offers"), data); }
@@ -623,6 +676,7 @@ window.editOffer = async function(id) {
   document.getElementById("o-title").value = o.title || "";
   document.getElementById("o-desc").value = o.description || "";
   document.getElementById("o-discount").value = o.discountPercent || "";
+  document.getElementById("o-category").value = o.categoryId || "";
   document.getElementById("o-start").value = o.startDate || "";
   document.getElementById("o-end").value = o.endDate || "";
   document.getElementById("o-active").checked = o.active !== false;
@@ -648,6 +702,7 @@ function loadOffers() {
       const isActive = o.active && now < end;
       const statusClass = isActive ? 'active' : (now > end ? 'expired' : 'inactive');
       const statusText = isActive ? 'فعال' : (now > end ? 'منقضی شده' : 'غیرفعال');
+      const categoryName = o.categoryId ? allCategoriesCache.find(c => c.id === o.categoryId)?.name || 'نامشخص' : 'همه محصولات';
       const card = document.createElement("div");
       card.className = "offer-card";
       card.innerHTML = `
@@ -656,6 +711,7 @@ function loadOffers() {
             <div class="offer-title">${o.title}</div>
             <div class="offer-dates">${o.description || ''}</div>
             <div class="offer-discount">${o.discountPercent}% تخفیف</div>
+            <div class="offer-dates">دسته‌بندی: ${categoryName}</div>
             <div class="offer-dates">شروع: ${new Date(o.startDate).toLocaleDateString('fa')} | پایان: ${new Date(o.endDate).toLocaleDateString('fa')}</div>
           </div>
           <div>
@@ -671,6 +727,62 @@ function loadOffers() {
     });
   });
 }
+
+// ============================================================
+// ===== تخفیف اولین خرید =====
+// ============================================================
+let firstPurchaseSettings = null;
+
+async function loadFirstPurchaseSettings() {
+  try {
+    const docRef = doc(db, "settings", "firstPurchaseDiscount");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      firstPurchaseSettings = docSnap.data();
+    } else {
+      firstPurchaseSettings = {
+        active: true,
+        discountPercent: 10,
+        minOrderAmount: 5,
+        maxDiscountAmount: null,
+        usedCount: 0,
+        maxUses: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      await setDoc(docRef, firstPurchaseSettings);
+    }
+    document.getElementById("fp-active").checked = firstPurchaseSettings.active !== false;
+    document.getElementById("fp-discount").value = firstPurchaseSettings.discountPercent || 10;
+    document.getElementById("fp-minOrder").value = firstPurchaseSettings.minOrderAmount || 0;
+    document.getElementById("fp-maxDiscount").value = firstPurchaseSettings.maxDiscountAmount || "";
+    document.getElementById("fp-maxUses").value = firstPurchaseSettings.maxUses || "";
+    document.getElementById("fp-usedCount").textContent = firstPurchaseSettings.usedCount || 0;
+  } catch (err) {
+    console.error("خطا در بارگذاری تنظیمات تخفیف اولین خرید:", err);
+  }
+}
+
+window.saveFirstPurchaseSettings = async function() {
+  const statusEl = document.getElementById("fp-status");
+  try {
+    const data = {
+      active: document.getElementById("fp-active").checked,
+      discountPercent: parseInt(document.getElementById("fp-discount").value) || 10,
+      minOrderAmount: parseInt(document.getElementById("fp-minOrder").value) || 0,
+      maxDiscountAmount: parseInt(document.getElementById("fp-maxDiscount").value) || null,
+      maxUses: parseInt(document.getElementById("fp-maxUses").value) || null,
+      usedCount: firstPurchaseSettings?.usedCount || 0,
+      updatedAt: new Date().toISOString()
+    };
+    await updateDoc(doc(db, "settings", "firstPurchaseDiscount"), data);
+    firstPurchaseSettings = data;
+    statusEl.innerHTML = `<div class="status-msg status-ok">تنظیمات تخفیف اولین خرید ذخیره شد ✅</div>`;
+    setTimeout(() => statusEl.innerHTML = "", 3000);
+  } catch (err) {
+    statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`;
+  }
+};
 
 // ============================================================
 // ===== کدهای تخفیف (Coupons) =====
@@ -1071,4 +1183,4 @@ setSaleType("weight");
 addModelRow();
 </script>
 </body>
- </html>
+     </html>
