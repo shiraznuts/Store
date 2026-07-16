@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* ===== تنظیمات پایه ===== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --gold: #b8860b;
@@ -31,6 +32,7 @@
   }
   ::-webkit-scrollbar { display: none; }
 
+  /* ===== تم تاریک ===== */
   body.dark-mode .product-card,
   body.dark-mode .premium-card,
   body.dark-mode .cat-card,
@@ -418,27 +420,6 @@
     background: var(--gold-light);
     transform: scale(1.2);
   }
-
-  /* ===== بنرها ===== */
-  .banner-wrap {
-    display: flex;
-    overflow-x: auto;
-    gap: 10px;
-    padding: 8px 12px 12px;
-    scroll-snap-type: x mandatory;
-  }
-  .banner-wrap img {
-    width: 100%;
-    min-width: 90%;
-    height: 130px;
-    object-fit: cover;
-    border-radius: 16px;
-    scroll-snap-align: start;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    cursor: pointer;
-    transition: transform 0.3s ease;
-  }
-  .banner-wrap img:hover { transform: scale(1.02); }
 
   /* ===== بخش مزایا ===== */
   .benefits {
@@ -1665,7 +1646,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
@@ -1757,13 +1738,8 @@ async function loadOfferTimer() {
     const offer = snapshot.docs[0].data();
     document.getElementById("offerDesc").innerHTML = offer.description || "خصم على جميع المنتجات";
     const endDate = new Date(offer.endDate);
-    const startDate = new Date(offer.startDate);
     const now = new Date();
     if (now > endDate) {
-      document.getElementById("specialOffer").style.display = "none";
-      return;
-    }
-    if (now < startDate) {
       document.getElementById("specialOffer").style.display = "none";
       return;
     }
@@ -2085,34 +2061,33 @@ window.clearCart = function() {
 
 // ===== بارگذاری داده =====
 async function loadData() {
-  const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order")));
-  allCategories = []; catSnap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+  try {
+    const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order")));
+    allCategories = []; catSnap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
 
-  const prodSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-  allProducts = []; prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+    const prodSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+    allProducts = []; prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
 
-  const bannerSnap = await getDocs(query(collection(db, "banners"), orderBy("order")));
-  const banners = []; bannerSnap.forEach(d => banners.push({ id: d.id, ...d.data() }));
-  renderBanners(banners);
-
-  renderCategoryGrid();
-  renderSidebarCategories();
-  renderPremiumProducts();
-  renderNewProducts();
-  updateUserUI();
-  initSlider();
-  loadOfferTimer();
-  loadTheme();
-}
-
-function renderBanners(banners) {
-  const wrap = document.getElementById("banner-wrap");
-  wrap.innerHTML = "";
-  banners.filter(b => b.active !== false).forEach(b => {
-    const img = document.createElement("img"); img.src = b.image; img.alt = b.title || "بنر";
-    if (b.link) img.onclick = () => openCategory(b.link);
-    wrap.appendChild(img);
-  });
+    // بارگذاری دسته‌بندی‌ها و محصولات (بدون بنر)
+    renderCategoryGrid();
+    renderSidebarCategories();
+    renderPremiumProducts();
+    renderNewProducts();
+    updateUserUI();
+    initSlider();
+    
+    // تلاش برای بارگذاری تخفیف (در صورت وجود)
+    try {
+      await loadOfferTimer();
+    } catch(e) {
+      document.getElementById("specialOffer").style.display = "none";
+    }
+    
+    loadTheme();
+  } catch (error) {
+    console.error("خطا در بارگذاری داده:", error);
+    showToast("خطا در اتصال به دیتابیس", "❌");
+  }
 }
 
 function renderPremiumProducts() {
@@ -2491,7 +2466,6 @@ function renderCartItems() {
   let total = cart.reduce((s,c)=>s+c.lineTotal, 0);
   let discountApplied = 0;
   
-  // تخفیف اولین خرید
   if (currentUser && currentUser.firstPurchaseDiscount === true) {
     discountApplied = 0.1;
     document.getElementById("firstPurchaseBadge").style.display = "block";
@@ -2499,7 +2473,6 @@ function renderCartItems() {
     document.getElementById("firstPurchaseBadge").style.display = "none";
   }
   
-  // تخفیف کد
   if (couponApplied > 0) {
     discountApplied = Math.max(discountApplied, couponApplied);
   }
@@ -2557,7 +2530,6 @@ window.sendWhatsAppOrder = async function() {
       firstPurchaseDiscount: currentUser && currentUser.firstPurchaseDiscount === true,
       createdAt: new Date().toISOString()
     });
-    // بعد از ثبت سفارش، تخفیف اولین خرید غیرفعال می‌شود
     if (currentUser && currentUser.firstPurchaseDiscount === true) {
       currentUser.firstPurchaseDiscount = false;
       localStorage.setItem("shiraznuts_user", JSON.stringify(currentUser));
@@ -2587,4 +2559,4 @@ renderCartBar();
 loadData();
 </script>
 </body>
- </html>
+                                        </html>
