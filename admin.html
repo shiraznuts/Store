@@ -17,10 +17,11 @@
   button.secondary { background:#333; color:#eee; }
   button.danger { background:#a33; color:#fff; }
   button.small { padding:6px 12px; font-size:13px; }
+  button.success { background:#2e7d32; color:#fff; }
   .login-box { width:100%; max-width:340px; }
   #admin-panel { display:none; padding:12px; padding-bottom:60px; }
   header.top { display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-bottom:1px solid #333; margin-bottom:10px; }
-  nav.tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; }
+  nav.tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; flex-wrap:wrap; }
   nav.tabs button { background:#1a1a1c; color:#ccc; white-space:nowrap; }
   nav.tabs button.active { background:#d4af37; color:#000; }
   .tab-content { display:none; }
@@ -28,7 +29,7 @@
   .card { background:#1a1a1c; border:1px solid #2a2a2c; border-radius:12px; padding:14px; margin-bottom:12px; }
   .card h3 { margin:0 0 8px 0; color:#d4af37; }
   img.thumb { width:60px; height:60px; object-fit:cover; border-radius:8px; }
-  .row { display:flex; align-items:center; gap:8px; }
+  .row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .between { justify-content:space-between; }
   label { font-size:13px; color:#aaa; display:block; margin-top:8px; }
   .status-msg { padding:10px; border-radius:8px; margin:10px 0; font-size:14px; }
@@ -36,6 +37,7 @@
   .status-err { background:#331414; color:#ff9a9a; }
   .badge { font-size:11px; padding:2px 8px; border-radius:10px; background:#333; margin-left:6px; }
   .badge.on { background:#14331e; color:#7fd99a; }
+  .badge.off { background:#331414; color:#ff9a9a; }
   .toggle-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
   .model-box { border:1px solid #333; border-radius:10px; padding:10px; margin-top:10px; background:#141416; }
   .saletype-switch { display:flex; gap:8px; margin-top:8px; }
@@ -87,28 +89,37 @@
   .image-preview { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
   .image-preview img { width:60px; height:60px; object-fit:cover; border-radius:8px; border:2px solid #333; }
   
-  .model-image-item {
-    position: relative;
-    display: inline-block;
-    margin: 4px;
+  /* ===== استایل‌های جدید برای تخفیف‌ها ===== */
+  .offer-card, .coupon-card {
+    background: #141416;
+    border: 1px solid #2a2a2c;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
   }
-  .model-image-item .remove-img {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: #a33;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
+  .offer-card .offer-title, .coupon-card .coupon-code {
+    font-size: 16px;
+    font-weight: bold;
+    color: #d4af37;
+  }
+  .offer-card .offer-dates, .coupon-card .coupon-dates {
     font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+    color: #888;
   }
+  .offer-card .offer-discount, .coupon-card .coupon-discount {
+    font-size: 14px;
+    color: #7fd99a;
+  }
+  .status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+  }
+  .status-badge.active { background: #14331e; color: #7fd99a; }
+  .status-badge.inactive { background: #331414; color: #ff9a9a; }
+  .status-badge.expired { background: #332211; color: #e0a040; }
 </style>
 </head>
 <body>
@@ -132,37 +143,15 @@
   </header>
 
   <nav class="tabs">
-    <button class="tab-btn active" data-tab="products">محصولات</button>
-    <button class="tab-btn" data-tab="categories">دسته‌بندی‌ها</button>
-    <button class="tab-btn" data-tab="banners">بنرها</button>
-    <button class="tab-btn" data-tab="orders">سفارش‌ها</button>
+    <button class="tab-btn active" data-tab="products">🛒 محصولات</button>
+    <button class="tab-btn" data-tab="categories">📂 دسته‌بندی‌ها</button>
+    <button class="tab-btn" data-tab="banners">🖼️ بنرها</button>
+    <button class="tab-btn" data-tab="offers">📊 تخفیف‌ها</button>
+    <button class="tab-btn" data-tab="coupons">🎫 کدهای تخفیف</button>
+    <button class="tab-btn" data-tab="orders">📦 سفارش‌ها</button>
   </nav>
 
-  <!-- تب دسته‌بندی -->
-  <div class="tab-content" id="tab-categories">
-    <div class="card">
-      <h3 id="cat-form-title">افزودن دسته‌بندی</h3>
-      <input type="hidden" id="category-id">
-      <label>نام دسته</label>
-      <input type="text" id="c-name" placeholder="مثلاً خشکبار">
-      <label>ترتیب نمایش</label>
-      <input type="number" id="c-order" value="1">
-      <label>دسته والد (اگه این یه زیردسته‌ست)</label>
-      <select id="c-parent"><option value="">بدون والد (دسته اصلی)</option></select>
-      <label>عکس دسته‌بندی</label>
-      <input type="file" id="c-image-input" accept="image/*">
-      <div class="image-preview" id="c-image-preview"></div>
-      <div style="margin-top:10px">
-        <button onclick="saveCategory()">ذخیره دسته‌بندی</button>
-        <button class="secondary" onclick="resetCategoryForm()">پاک کردن فرم</button>
-      </div>
-      <div id="category-status"></div>
-    </div>
-    <h3 style="color:#d4af37">لیست دسته‌بندی‌ها</h3>
-    <div id="categories-list"></div>
-  </div>
-
-  <!-- تب محصولات -->
+  <!-- ===== تب محصولات ===== -->
   <div class="tab-content active" id="tab-products">
     <div class="card">
       <h3 id="product-form-title">افزودن محصول جدید</h3>
@@ -212,7 +201,31 @@
     <div id="products-list"></div>
   </div>
 
-  <!-- تب بنرها -->
+  <!-- ===== تب دسته‌بندی ===== -->
+  <div class="tab-content" id="tab-categories">
+    <div class="card">
+      <h3 id="cat-form-title">افزودن دسته‌بندی</h3>
+      <input type="hidden" id="category-id">
+      <label>نام دسته</label>
+      <input type="text" id="c-name" placeholder="مثلاً خشکبار">
+      <label>ترتیب نمایش</label>
+      <input type="number" id="c-order" value="1">
+      <label>دسته والد (اگه این یه زیردسته‌ست)</label>
+      <select id="c-parent"><option value="">بدون والد (دسته اصلی)</option></select>
+      <label>عکس دسته‌بندی</label>
+      <input type="file" id="c-image-input" accept="image/*">
+      <div class="image-preview" id="c-image-preview"></div>
+      <div style="margin-top:10px">
+        <button onclick="saveCategory()">ذخیره دسته‌بندی</button>
+        <button class="secondary" onclick="resetCategoryForm()">پاک کردن فرم</button>
+      </div>
+      <div id="category-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست دسته‌بندی‌ها</h3>
+    <div id="categories-list"></div>
+  </div>
+
+  <!-- ===== تب بنرها ===== -->
   <div class="tab-content" id="tab-banners">
     <div class="card">
       <h3 id="banner-form-title">افزودن بنر</h3>
@@ -236,7 +249,61 @@
     <div id="banners-list"></div>
   </div>
 
-  <!-- تب سفارش‌ها -->
+  <!-- ===== تب تخفیف‌ها (Offers) - جدید ===== -->
+  <div class="tab-content" id="tab-offers">
+    <div class="card">
+      <h3 id="offer-form-title">افزودن تخفیف ویژه</h3>
+      <input type="hidden" id="offer-id">
+      <label>عنوان تخفیف</label>
+      <input type="text" id="o-title" placeholder="مثلاً عروض خاصة">
+      <label>توضیحات</label>
+      <input type="text" id="o-desc" placeholder="مثلاً خصم ۳۰٪ على جميع المكسرات">
+      <label>درصد تخفیف</label>
+      <input type="number" id="o-discount" placeholder="مثلاً 30" min="1" max="100">
+      <label>تاریخ شروع</label>
+      <input type="datetime-local" id="o-start">
+      <label>تاریخ پایان</label>
+      <input type="datetime-local" id="o-end">
+      <div class="toggle-row">
+        <input type="checkbox" id="o-active" checked> <span>فعال</span>
+      </div>
+      <div style="margin-top:10px">
+        <button onclick="saveOffer()">ذخیره تخفیف</button>
+        <button class="secondary" onclick="resetOfferForm()">پاک کردن فرم</button>
+      </div>
+      <div id="offer-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست تخفیف‌ها</h3>
+    <div id="offers-list"></div>
+  </div>
+
+  <!-- ===== تب کدهای تخفیف (Coupons) - جدید ===== -->
+  <div class="tab-content" id="tab-coupons">
+    <div class="card">
+      <h3 id="coupon-form-title">افزودن کد تخفیف</h3>
+      <input type="hidden" id="coupon-id">
+      <label>کد تخفیف</label>
+      <input type="text" id="c-code" placeholder="مثلاً SHIRAZ10">
+      <label>درصد تخفیف</label>
+      <input type="number" id="c-discount" placeholder="مثلاً 10" min="1" max="100">
+      <label>حداکثر استفاده</label>
+      <input type="number" id="c-maxuses" placeholder="مثلاً 100 (خالی = نامحدود)">
+      <label>تاریخ انقضا</label>
+      <input type="datetime-local" id="c-expiry">
+      <div class="toggle-row">
+        <input type="checkbox" id="c-active" checked> <span>فعال</span>
+      </div>
+      <div style="margin-top:10px">
+        <button onclick="saveCoupon()">ذخیره کد</button>
+        <button class="secondary" onclick="resetCouponForm()">پاک کردن فرم</button>
+      </div>
+      <div id="coupon-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست کدهای تخفیف</h3>
+    <div id="coupons-list"></div>
+  </div>
+
+  <!-- ===== تب سفارش‌ها ===== -->
   <div class="tab-content" id="tab-orders">
     <h3 style="color:#d4af37">سفارش‌های ثبت‌شده</h3>
     <div id="orders-list"></div>
@@ -266,7 +333,7 @@ const db = getFirestore(app);
 const CLOUD_NAME = "ygtxs7im";
 const UPLOAD_PRESET = "Shiraznuts_products1";
 
-// ---------- ورود/خروج ----------
+// ===== ورود/خروج =====
 window.doLogin = async function () {
   const email = document.getElementById("login-email").value.trim();
   const pass = document.getElementById("login-pass").value;
@@ -288,6 +355,8 @@ onAuthStateChanged(auth, async (user) => {
       loadProducts();
       loadBanners();
       loadOrders();
+      loadOffers();
+      loadCoupons();
     } else {
       alert("این حساب دسترسی مدیریت ندارد.");
       await signOut(auth);
@@ -307,7 +376,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
   });
 });
 
-// ---------- آپلود عکس ----------
+// ===== آپلود عکس =====
 async function uploadImageToCloudinary(file) {
   const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
   const formData = new FormData();
@@ -512,6 +581,191 @@ function loadBanners() {
 }
 
 // ============================================================
+// ===== تخفیف‌ها (Offers) =====
+// ============================================================
+window.resetOfferForm = function() {
+  document.getElementById("offer-id").value = "";
+  document.getElementById("o-title").value = "";
+  document.getElementById("o-desc").value = "";
+  document.getElementById("o-discount").value = "";
+  document.getElementById("o-start").value = "";
+  document.getElementById("o-end").value = "";
+  document.getElementById("o-active").checked = true;
+  document.getElementById("offer-form-title").innerText = "افزودن تخفیف ویژه";
+};
+
+window.saveOffer = async function() {
+  const id = document.getElementById("offer-id").value;
+  const title = document.getElementById("o-title").value.trim();
+  const description = document.getElementById("o-desc").value.trim();
+  const discountPercent = parseInt(document.getElementById("o-discount").value) || 0;
+  const startDate = document.getElementById("o-start").value;
+  const endDate = document.getElementById("o-end").value;
+  const active = document.getElementById("o-active").checked;
+  const statusEl = document.getElementById("offer-status");
+  
+  if (!title) { statusEl.innerHTML = `<div class="status-msg status-err">عنوان تخفیف را وارد کن</div>`; return; }
+  if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
+  if (!startDate || !endDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ شروع و پایان را وارد کن</div>`; return; }
+  
+  const data = { title, description, discountPercent, startDate, endDate, active };
+  try {
+    if (id) { await updateDoc(doc(db, "offers", id), data); }
+    else { await addDoc(collection(db, "offers"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">تخفیف ذخیره شد ✅</div>`;
+    resetOfferForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editOffer = async function(id) {
+  const snap = await getDoc(doc(db, "offers", id));
+  if (!snap.exists()) return;
+  const o = snap.data();
+  document.getElementById("offer-id").value = id;
+  document.getElementById("o-title").value = o.title || "";
+  document.getElementById("o-desc").value = o.description || "";
+  document.getElementById("o-discount").value = o.discountPercent || "";
+  document.getElementById("o-start").value = o.startDate || "";
+  document.getElementById("o-end").value = o.endDate || "";
+  document.getElementById("o-active").checked = o.active !== false;
+  document.getElementById("offer-form-title").innerText = "ویرایش تخفیف";
+  window.scrollTo(0,0);
+};
+
+window.deleteOffer = async function(id) {
+  if (!confirm("حذف این تخفیف؟")) return;
+  await deleteDoc(doc(db, "offers", id));
+};
+
+function loadOffers() {
+  const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("offers-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هیچ تخفیفی ثبت نشده</div>`; return; }
+    snapshot.forEach(docSnap => {
+      const o = docSnap.data();
+      const now = new Date();
+      const end = new Date(o.endDate);
+      const isActive = o.active && now < end;
+      const statusClass = isActive ? 'active' : (now > end ? 'expired' : 'inactive');
+      const statusText = isActive ? 'فعال' : (now > end ? 'منقضی شده' : 'غیرفعال');
+      const card = document.createElement("div");
+      card.className = "offer-card";
+      card.innerHTML = `
+        <div class="row between">
+          <div>
+            <div class="offer-title">${o.title}</div>
+            <div class="offer-dates">${o.description || ''}</div>
+            <div class="offer-discount">${o.discountPercent}% تخفیف</div>
+            <div class="offer-dates">شروع: ${new Date(o.startDate).toLocaleDateString('fa')} | پایان: ${new Date(o.endDate).toLocaleDateString('fa')}</div>
+          </div>
+          <div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+            <div style="margin-top:8px">
+              <button class="secondary small" onclick="editOffer('${docSnap.id}')">ویرایش</button>
+              <button class="danger small" onclick="deleteOffer('${docSnap.id}')">حذف</button>
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+// ============================================================
+// ===== کدهای تخفیف (Coupons) =====
+// ============================================================
+window.resetCouponForm = function() {
+  document.getElementById("coupon-id").value = "";
+  document.getElementById("c-code").value = "";
+  document.getElementById("c-discount").value = "";
+  document.getElementById("c-maxuses").value = "";
+  document.getElementById("c-expiry").value = "";
+  document.getElementById("c-active").checked = true;
+  document.getElementById("coupon-form-title").innerText = "افزودن کد تخفیف";
+};
+
+window.saveCoupon = async function() {
+  const id = document.getElementById("coupon-id").value;
+  const code = document.getElementById("c-code").value.trim().toUpperCase();
+  const discountPercent = parseInt(document.getElementById("c-discount").value) || 0;
+  const maxUses = parseInt(document.getElementById("c-maxuses").value) || null;
+  const expiryDate = document.getElementById("c-expiry").value;
+  const active = document.getElementById("c-active").checked;
+  const statusEl = document.getElementById("coupon-status");
+  
+  if (!code) { statusEl.innerHTML = `<div class="status-msg status-err">کد تخفیف را وارد کن</div>`; return; }
+  if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
+  if (!expiryDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ انقضا را وارد کن</div>`; return; }
+  
+  const data = { code, discountPercent, maxUses, usedCount: 0, expiryDate, active };
+  try {
+    if (id) { await updateDoc(doc(db, "coupons", id), data); }
+    else { await addDoc(collection(db, "coupons"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">کد تخفیف ذخیره شد ✅</div>`;
+    resetCouponForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editCoupon = async function(id) {
+  const snap = await getDoc(doc(db, "coupons", id));
+  if (!snap.exists()) return;
+  const c = snap.data();
+  document.getElementById("coupon-id").value = id;
+  document.getElementById("c-code").value = c.code || "";
+  document.getElementById("c-discount").value = c.discountPercent || "";
+  document.getElementById("c-maxuses").value = c.maxUses || "";
+  document.getElementById("c-expiry").value = c.expiryDate || "";
+  document.getElementById("c-active").checked = c.active !== false;
+  document.getElementById("coupon-form-title").innerText = "ویرایش کد تخفیف";
+  window.scrollTo(0,0);
+};
+
+window.deleteCoupon = async function(id) {
+  if (!confirm("حذف این کد تخفیف؟")) return;
+  await deleteDoc(doc(db, "coupons", id));
+};
+
+function loadCoupons() {
+  const q = query(collection(db, "coupons"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("coupons-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هیچ کد تخفیفی ثبت نشده</div>`; return; }
+    snapshot.forEach(docSnap => {
+      const c = docSnap.data();
+      const now = new Date();
+      const expiry = new Date(c.expiryDate);
+      const isActive = c.active && now < expiry;
+      const statusClass = isActive ? 'active' : (now > expiry ? 'expired' : 'inactive');
+      const statusText = isActive ? 'فعال' : (now > expiry ? 'منقضی شده' : 'غیرفعال');
+      const card = document.createElement("div");
+      card.className = "coupon-card";
+      card.innerHTML = `
+        <div class="row between">
+          <div>
+            <div class="coupon-code">🎫 ${c.code}</div>
+            <div class="coupon-discount">${c.discountPercent}% تخفیف</div>
+            <div class="coupon-dates">استفاده: ${c.usedCount || 0}${c.maxUses ? ' از ' + c.maxUses : ''}</div>
+            <div class="coupon-dates">انقضا: ${new Date(c.expiryDate).toLocaleDateString('fa')}</div>
+          </div>
+          <div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+            <div style="margin-top:8px">
+              <button class="secondary small" onclick="editCoupon('${docSnap.id}')">ویرایش</button>
+              <button class="danger small" onclick="deleteCoupon('${docSnap.id}')">حذف</button>
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+// ============================================================
 // ===== سفارش‌ها =====
 // ============================================================
 function loadOrders() {
@@ -529,6 +783,8 @@ function loadOrders() {
         <div><strong>${o.customerName || "بدون نام"}</strong> — ${o.phone || ""}</div>
         <div style="font-size:13px;color:#aaa;margin:6px 0">${itemsText}</div>
         <div style="color:#d4af37;font-weight:bold">جمع کل: ${o.total} ريال</div>
+        ${o.couponApplied ? `<div style="font-size:12px;color:#7fd99a;">کد تخفیف اعمال شده</div>` : ''}
+        ${o.firstPurchaseDiscount ? `<div style="font-size:12px;color:#7fd99a;">تخفیف اولین خرید</div>` : ''}
         <label>وضعیت سفارش</label>
         <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
           <option value="pending" ${o.status==='pending'?'selected':''}>در انتظار</option>
@@ -797,7 +1053,7 @@ window.renderProductsList = function () {
         ${img}
         <div>
           <strong>${p.name}</strong>
-          <span class="badge ${p.active !== false ? 'on' : ''}">${p.active !== false ? 'فعال' : 'غیرفعال'}</span>
+          <span class="badge ${p.active !== false ? 'on' : 'off'}">${p.active !== false ? 'فعال' : 'غیرفعال'}</span>
           ${p.featured ? '<span class="badge on">ویژه</span>' : ''}
           ${p.new ? '<span class="badge on">جدید</span>' : ''}
           <span class="badge">${p.saleType === 'unit' ? 'عددی' : 'وزنی'}</span>
@@ -817,4 +1073,4 @@ setSaleType("weight");
 addModelRow();
 </script>
 </body>
-</html>
+ </html>
