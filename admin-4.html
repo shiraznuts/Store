@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پنل مدیریت | Shiraz Nuts</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Tahoma, Arial, sans-serif; background:#0f0f10; color:#eee; margin:0; padding:0; }
+  #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+  #login-screen h1 { color:#d4af37; margin-bottom:30px; }
+  input, select, textarea {
+    width:100%; padding:12px; margin:6px 0; border-radius:8px;
+    border:1px solid #333; background:#1a1a1c; color:#fff; font-size:15px;
+  }
+  button { padding:12px 20px; border:none; border-radius:8px; background:#d4af37; color:#000; font-weight:bold; font-size:15px; cursor:pointer; margin:6px 4px 6px 0; }
+  button.secondary { background:#333; color:#eee; }
+  button.danger { background:#a33; color:#fff; }
+  button.small { padding:6px 12px; font-size:13px; }
+  .login-box { width:100%; max-width:340px; }
+  #admin-panel { display:none; padding:12px; padding-bottom:60px; }
+  header.top { display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-bottom:1px solid #333; margin-bottom:10px; }
+  nav.tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; }
+  nav.tabs button { background:#1a1a1c; color:#ccc; white-space:nowrap; }
+  nav.tabs button.active { background:#d4af37; color:#000; }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+  .card { background:#1a1a1c; border:1px solid #2a2a2c; border-radius:12px; padding:14px; margin-bottom:12px; }
+  .card h3 { margin:0 0 8px 0; color:#d4af37; }
+  img.thumb { width:60px; height:60px; object-fit:cover; border-radius:8px; }
+  .row { display:flex; align-items:center; gap:8px; }
+  .between { justify-content:space-between; }
+  label { font-size:13px; color:#aaa; display:block; margin-top:8px; }
+  .status-msg { padding:10px; border-radius:8px; margin:10px 0; font-size:14px; }
+  .status-ok { background:#14331e; color:#7fd99a; }
+  .status-err { background:#331414; color:#ff9a9a; }
+  .badge { font-size:11px; padding:2px 8px; border-radius:10px; background:#333; margin-left:6px; }
+  .badge.on { background:#14331e; color:#7fd99a; }
+  .toggle-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .model-box { border:1px solid #333; border-radius:10px; padding:10px; margin-top:10px; background:#141416; }
+  .saletype-switch { display:flex; gap:8px; margin-top:8px; }
+  .saletype-switch button { flex:1; background:#1a1a1c; color:#ccc; }
+  .saletype-switch button.active { background:#d4af37; color:#000; }
+  
+  .image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .image-gallery .image-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #333;
+  }
+  .image-gallery .image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .image-gallery .image-item .remove-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #a33;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+  }
+  .image-gallery .image-item .remove-img:hover {
+    transform: scale(1.15);
+    background: #c0392b;
+  }
+  
+  .image-preview { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .image-preview img { width:60px; height:60px; object-fit:cover; border-radius:8px; border:2px solid #333; }
+  
+  .model-image-item {
+    position: relative;
+    display: inline-block;
+    margin: 4px;
+  }
+  .model-image-item .remove-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #a33;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <h1>Shiraz Nuts</h1>
+  <div class="login-box">
+    <label>ایمیل</label>
+    <input type="email" id="login-email" placeholder="ایمیل مدیر">
+    <label>رمز عبور</label>
+    <input type="password" id="login-pass" placeholder="رمز عبور">
+    <button onclick="doLogin()" style="width:100%">ورود</button>
+    <div id="login-msg"></div>
+  </div>
+</div>
+
+<div id="admin-panel">
+  <header class="top">
+    <strong id="admin-email"></strong>
+    <button class="secondary" onclick="doLogout()">خروج</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="products">محصولات</button>
+    <button class="tab-btn" data-tab="categories">دسته‌بندی‌ها</button>
+    <button class="tab-btn" data-tab="banners">بنرها</button>
+    <button class="tab-btn" data-tab="orders">سفارش‌ها</button>
+  </nav>
+
+  <!-- تب دسته‌بندی -->
+  <div class="tab-content" id="tab-categories">
+    <div class="card">
+      <h3 id="cat-form-title">افزودن دسته‌بندی</h3>
+      <input type="hidden" id="category-id">
+      <label>نام دسته</label>
+      <input type="text" id="c-name" placeholder="مثلاً خشکبار">
+      <label>ترتیب نمایش</label>
+      <input type="number" id="c-order" value="1">
+      <label>دسته والد (اگه این یه زیردسته‌ست)</label>
+      <select id="c-parent"><option value="">بدون والد (دسته اصلی)</option></select>
+      <label>عکس دسته‌بندی</label>
+      <input type="file" id="c-image-input" accept="image/*">
+      <div class="image-preview" id="c-image-preview"></div>
+      <div style="margin-top:10px">
+        <button onclick="saveCategory()">ذخیره دسته‌بندی</button>
+        <button class="secondary" onclick="resetCategoryForm()">پاک کردن فرم</button>
+      </div>
+      <div id="category-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست دسته‌بندی‌ها</h3>
+    <div id="categories-list"></div>
+  </div>
+
+  <!-- تب محصولات -->
+  <div class="tab-content active" id="tab-products">
+    <div class="card">
+      <h3 id="product-form-title">افزودن محصول جدید</h3>
+      <input type="hidden" id="product-id">
+      <label>نام محصول</label>
+      <input type="text" id="p-name" placeholder="مثلاً پسته اکبری">
+      <label>دسته‌بندی</label>
+      <select id="p-category"></select>
+      <label>توضیحات</label>
+      <textarea id="p-desc" rows="2"></textarea>
+
+      <label>عکس‌های اصلی محصول</label>
+      <input type="file" id="p-images-input" accept="image/*" multiple>
+      <div class="image-gallery" id="p-images-gallery"></div>
+
+      <label>نوع فروش</label>
+      <div class="saletype-switch">
+        <button type="button" id="st-weight" onclick="setSaleType('weight')">وزنی (کیلویی)</button>
+        <button type="button" id="st-unit" onclick="setSaleType('unit')">عددی (تعدادی)</button>
+      </div>
+
+      <label style="margin-top:16px">مدل‌های محصول</label>
+      <div id="models-container"></div>
+      <button class="secondary" type="button" onclick="addModelRow()">+ افزودن مدل</button>
+
+      <div class="toggle-row">
+        <input type="checkbox" id="p-featured"> <span>محصول ویژه</span>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="p-new"> <span>محصول جدید</span>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="p-active" checked> <span>فعال (نمایش در سایت)</span>
+      </div>
+
+      <div style="margin-top:14px">
+        <button onclick="saveProduct()">ذخیره محصول</button>
+        <button class="secondary" onclick="resetProductForm()">پاک کردن فرم</button>
+      </div>
+      <div id="product-status"></div>
+    </div>
+
+    <div class="row between" style="margin:10px 0">
+      <h3 style="color:#d4af37;margin:0">لیست محصولات</h3>
+      <input type="text" id="search-box" placeholder="جستجوی محصول..." style="max-width:160px;margin:0" oninput="renderProductsList()">
+    </div>
+    <div id="products-list"></div>
+  </div>
+
+  <!-- تب بنرها -->
+  <div class="tab-content" id="tab-banners">
+    <div class="card">
+      <h3 id="banner-form-title">افزودن بنر</h3>
+      <input type="hidden" id="banner-id">
+      <label>عنوان بنر (اختیاری)</label>
+      <input type="text" id="b-title" placeholder="مثلاً تخفیف ویژه زعفران">
+      <label>عکس بنر</label>
+      <input type="file" id="b-image-input" accept="image/*">
+      <div class="image-preview" id="b-image-preview"></div>
+      <label>لینک (اختیاری)</label>
+      <select id="b-link"><option value="">بدون لینک</option></select>
+      <label>ترتیب نمایش</label>
+      <input type="number" id="b-order" value="1">
+      <div style="margin-top:10px">
+        <button onclick="saveBanner()">ذخیره بنر</button>
+        <button class="secondary" onclick="resetBannerForm()">پاک کردن فرم</button>
+      </div>
+      <div id="banner-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست بنرها</h3>
+    <div id="banners-list"></div>
+  </div>
+
+  <!-- تب سفارش‌ها -->
+  <div class="tab-content" id="tab-orders">
+    <h3 style="color:#d4af37">سفارش‌های ثبت‌شده</h3>
+    <div id="orders-list"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs,
+  deleteDoc, updateDoc, onSnapshot, query, orderBy, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
+  authDomain: "shiraznuts-92e20.firebaseapp.com",
+  projectId: "shiraznuts-92e20",
+  storageBucket: "shiraznuts-92e20.firebasestorage.app",
+  messagingSenderId: "236719692703",
+  appId: "1:236719692703:web:2b7ed97a0a80aa1a903baa"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const CLOUD_NAME = "ygtxs7im";
+const UPLOAD_PRESET = "Shiraznuts_products1";
+
+// ---------- ورود/خروج ----------
+window.doLogin = async function () {
+  const email = document.getElementById("login-email").value.trim();
+  const pass = document.getElementById("login-pass").value;
+  const msg = document.getElementById("login-msg");
+  msg.innerHTML = "";
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch (err) { msg.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+window.doLogout = async function () { await signOut(auth); };
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const adminDoc = await getDoc(doc(db, "admins", user.uid));
+    if (adminDoc.exists()) {
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+      document.getElementById("admin-email").innerText = user.email;
+      loadCategories();
+      loadProducts();
+      loadBanners();
+      loadOrders();
+    } else {
+      alert("این حساب دسترسی مدیریت ندارد.");
+      await signOut(auth);
+    }
+  } else {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("admin-panel").style.display = "none";
+  }
+});
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ---------- آپلود عکس ----------
+async function uploadImageToCloudinary(file) {
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  const res = await fetch(url, { method: "POST", body: formData });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error("آپلود عکس ناموفق بود");
+  return data.secure_url;
+}
+
+// ============================================================
+// ===== دسته‌بندی‌ها =====
+// ============================================================
+let categoryImage = "";
+document.getElementById("c-image-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById("c-image-preview");
+  preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
+  try {
+    categoryImage = await uploadImageToCloudinary(file);
+  } catch (err) { alert("خطا در آپلود عکس: " + err.message); }
+});
+
+window.resetCategoryForm = function () {
+  document.getElementById("category-id").value = "";
+  document.getElementById("c-name").value = "";
+  document.getElementById("c-order").value = "1";
+  document.getElementById("c-parent").value = "";
+  document.getElementById("c-image-preview").innerHTML = "";
+  categoryImage = "";
+  document.getElementById("cat-form-title").innerText = "افزودن دسته‌بندی";
+};
+
+window.saveCategory = async function () {
+  const id = document.getElementById("category-id").value;
+  const name = document.getElementById("c-name").value.trim();
+  const order = parseInt(document.getElementById("c-order").value) || 1;
+  const parentId = document.getElementById("c-parent").value;
+  const statusEl = document.getElementById("category-status");
+  if (!name) { statusEl.innerHTML = `<div class="status-msg status-err">نام دسته را وارد کن</div>`; return; }
+  const data = { name, order, active: true, image: categoryImage, parentId };
+  try {
+    if (id) { await updateDoc(doc(db, "categories", id), data); }
+    else { await addDoc(collection(db, "categories"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">ذخیره شد ✅</div>`;
+    resetCategoryForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editCategory = async function (id) {
+  const snap = await getDoc(doc(db, "categories", id));
+  if (!snap.exists()) return;
+  const c = snap.data();
+  document.getElementById("category-id").value = id;
+  document.getElementById("c-name").value = c.name || "";
+  document.getElementById("c-order").value = c.order || 1;
+  document.getElementById("c-parent").value = c.parentId || "";
+  categoryImage = c.image || "";
+  document.getElementById("c-image-preview").innerHTML = categoryImage ? `<img src="${categoryImage}">` : "";
+  document.getElementById("cat-form-title").innerText = "ویرایش دسته‌بندی";
+  window.scrollTo(0,0);
+};
+
+window.deleteCategory = async function (id) {
+  if (!confirm("حذف این دسته‌بندی؟")) return;
+  await deleteDoc(doc(db, "categories", id));
+};
+
+let allCategoriesCache = [];
+function loadCategories() {
+  const q = query(collection(db, "categories"), orderBy("order"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("categories-list");
+    const selectEl = document.getElementById("p-category");
+    const bLinkEl = document.getElementById("b-link");
+    const parentEl = document.getElementById("c-parent");
+    listEl.innerHTML = "";
+    selectEl.innerHTML = "";
+    if (bLinkEl) bLinkEl.innerHTML = '<option value="">بدون لینک</option>';
+    if (parentEl) parentEl.innerHTML = '<option value="">بدون والد (دسته اصلی)</option>';
+    allCategoriesCache = [];
+    snapshot.forEach(docSnap => {
+      const cat = docSnap.data();
+      allCategoriesCache.push({ id: docSnap.id, ...cat });
+      const card = document.createElement("div");
+      card.className = "card";
+      const img = cat.image ? `<img class="thumb" src="${cat.image}">` : "";
+      const parentCat = cat.parentId ? allCategoriesCache.find(c => c.id === cat.parentId) : null;
+      const parentBadge = cat.parentId ? `<span class="badge">زیردسته‌ی: ${parentCat ? parentCat.name : cat.parentId}</span>` : "";
+      card.innerHTML = `
+        <div class="row between">
+          <div class="row">${img}<span>${cat.name} <span class="badge">ترتیب: ${cat.order}</span> ${parentBadge}</span></div>
+        </div>
+        <div style="margin-top:8px">
+          <button class="secondary small" onclick="editCategory('${docSnap.id}')">ویرایش</button>
+          <button class="danger small" onclick="deleteCategory('${docSnap.id}')">حذف</button>
+        </div>
+      `;
+      listEl.appendChild(card);
+
+      const opt = document.createElement("option");
+      opt.value = docSnap.id;
+      opt.textContent = cat.name;
+      selectEl.appendChild(opt);
+
+      if (parentEl && !cat.parentId) {
+        const optP = document.createElement("option");
+        optP.value = docSnap.id;
+        optP.textContent = cat.name;
+        parentEl.appendChild(optP);
+      }
+
+      if (bLinkEl) {
+        const opt2 = document.createElement("option");
+        opt2.value = docSnap.id;
+        opt2.textContent = cat.name;
+        bLinkEl.appendChild(opt2);
+      }
+    });
+  });
+}
+
+// ============================================================
+// ===== بنرها =====
+// ============================================================
+let bannerImage = "";
+document.getElementById("b-image-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById("b-image-preview");
+  preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
+  try { bannerImage = await uploadImageToCloudinary(file); }
+  catch (err) { alert("خطا در آپلود عکس: " + err.message); }
+});
+
+window.resetBannerForm = function () {
+  document.getElementById("banner-id").value = "";
+  document.getElementById("b-title").value = "";
+  document.getElementById("b-order").value = "1";
+  document.getElementById("b-link").value = "";
+  document.getElementById("b-image-preview").innerHTML = "";
+  bannerImage = "";
+  document.getElementById("banner-form-title").innerText = "افزودن بنر";
+};
+
+window.saveBanner = async function () {
+  const id = document.getElementById("banner-id").value;
+  const title = document.getElementById("b-title").value.trim();
+  const order = parseInt(document.getElementById("b-order").value) || 1;
+  const link = document.getElementById("b-link").value;
+  const statusEl = document.getElementById("banner-status");
+  if (!bannerImage) { statusEl.innerHTML = `<div class="status-msg status-err">عکس بنر را آپلود کن</div>`; return; }
+  const data = { title, order, link, active: true, image: bannerImage };
+  try {
+    if (id) { await updateDoc(doc(db, "banners", id), data); }
+    else { await addDoc(collection(db, "banners"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">بنر ذخیره شد ✅</div>`;
+    resetBannerForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editBanner = async function (id) {
+  const snap = await getDoc(doc(db, "banners", id));
+  if (!snap.exists()) return;
+  const b = snap.data();
+  document.getElementById("banner-id").value = id;
+  document.getElementById("b-title").value = b.title || "";
+  document.getElementById("b-order").value = b.order || 1;
+  document.getElementById("b-link").value = b.link || "";
+  bannerImage = b.image || "";
+  document.getElementById("b-image-preview").innerHTML = bannerImage ? `<img src="${bannerImage}">` : "";
+  document.getElementById("banner-form-title").innerText = "ویرایش بنر";
+  window.scrollTo(0,0);
+};
+
+window.deleteBanner = async function (id) {
+  if (!confirm("حذف این بنر؟")) return;
+  await deleteDoc(doc(db, "banners", id));
+};
+
+function loadBanners() {
+  const q = query(collection(db, "banners"), orderBy("order"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("banners-list");
+    listEl.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const b = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="row"><img class="thumb" src="${b.image}"><span>${b.title || "(بدون عنوان)"} <span class="badge">ترتیب: ${b.order}</span></span></div>
+        <div style="margin-top:8px">
+          <button class="secondary small" onclick="editBanner('${docSnap.id}')">ویرایش</button>
+          <button class="danger small" onclick="deleteBanner('${docSnap.id}')">حذف</button>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+// ============================================================
+// ===== سفارش‌ها =====
+// ============================================================
+function loadOrders() {
+  const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("orders-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هنوز سفارشی ثبت نشده</div>`; return; }
+    snapshot.forEach(docSnap => {
+      const o = docSnap.data();
+      const itemsText = (o.items || []).map(i => `${i.name} - ${i.model} (${i.variant})`).join("<br>");
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div><strong>${o.customerName || "بدون نام"}</strong> — ${o.phone || ""}</div>
+        <div style="font-size:13px;color:#aaa;margin:6px 0">${itemsText}</div>
+        <div style="color:#d4af37;font-weight:bold">جمع کل: ${o.total} ريال</div>
+        <label>وضعیت سفارش</label>
+        <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
+          <option value="pending" ${o.status==='pending'?'selected':''}>در انتظار</option>
+          <option value="confirmed" ${o.status==='confirmed'?'selected':''}>تأیید شده</option>
+          <option value="preparing" ${o.status==='preparing'?'selected':''}>در حال آماده‌سازی</option>
+          <option value="sent" ${o.status==='sent'?'selected':''}>ارسال شده</option>
+          <option value="completed" ${o.status==='completed'?'selected':''}>تکمیل شده</option>
+          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>لغو شده</option>
+        </select>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+window.updateOrderStatus = async function (id, status) {
+  await updateDoc(doc(db, "orders", id), { status });
+};
+
+// ============================================================
+// ===== محصولات =====
+// ============================================================
+let currentSaleType = "weight";
+let uploadedImages = [];
+let currentProductId = null;
+
+window.setSaleType = function (type) {
+  currentSaleType = type;
+  document.getElementById("st-weight").classList.toggle("active", type === "weight");
+  document.getElementById("st-unit").classList.toggle("active", type === "unit");
+  document.querySelectorAll(".model-box").forEach(box => renderModelFields(box));
+};
+
+let modelCount = 0;
+window.addModelRow = function (data = {}) {
+  modelCount++;
+  const id = "m" + modelCount;
+  const container = document.getElementById("models-container");
+  const box = document.createElement("div");
+  box.className = "model-box";
+  box.dataset.mid = id;
+  box.dataset.image = data.image || "";
+  box.innerHTML = `
+    <div class="row between">
+      <strong>مدل</strong>
+      <button type="button" class="danger small" onclick="this.closest('.model-box').remove()">حذف مدل</button>
+    </div>
+    <label>نام مدل</label>
+    <input type="text" class="m-name" placeholder="مثلاً استاندارد / شیری / ترک" value="${data.name || ''}">
+    <label>عکس مدل (اختیاری)</label>
+    <input type="file" class="m-image-input" accept="image/*">
+    <div class="image-gallery model-images" id="model-images-${id}">
+      ${data.image ? `<div class="image-item"><img src="${data.image}"><button class="remove-img" onclick="removeModelImage(this, '${id}')">✕</button></div>` : ''}
+    </div>
+    <div class="fields-weight">
+      <label>قیمت هر کیلو (ریال)</label>
+      <input type="number" class="m-priceperkg" value="${data.pricePerKg || ''}">
+      <label>وزن‌های پیشنهادی (گرم، با کاما جدا کن)</label>
+      <input type="text" class="m-presets" value="${(data.presetWeights || [250,500,1000]).join(',')}">
+      <div class="toggle-row">
+        <input type="checkbox" class="m-customweight" ${data.allowCustomWeight !== false ? 'checked' : ''}>
+        <span>اجازه وارد کردن وزن دلخواه توسط مشتری</span>
+      </div>
+    </div>
+    <div class="fields-unit">
+      <label>قیمت هر عدد (ریال)</label>
+      <input type="number" class="m-price" value="${data.price || ''}">
+      <label>موجودی (تعداد)</label>
+      <input type="number" class="m-stock" value="${data.stock || ''}">
+    </div>
+  `;
+  container.appendChild(box);
+
+  box.querySelector(".m-image-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToCloudinary(file);
+      box.dataset.image = url;
+      const gallery = box.querySelector(".model-images");
+      const div = document.createElement("div");
+      div.className = "image-item";
+      div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeModelImage(this, '${id}')">✕</button>`;
+      gallery.appendChild(div);
+    } catch (err) { alert("خطا در آپلود عکس مدل: " + err.message); }
+    e.target.value = "";
+  });
+
+  renderModelFields(box);
+};
+
+window.removeModelImage = function(btn, modelId) {
+  const item = btn.closest('.image-item');
+  if (item) {
+    item.remove();
+    const box = document.querySelector(`.model-box[data-mid="${modelId}"]`);
+    const remaining = box.querySelectorAll('.model-images .image-item');
+    if (remaining.length === 0) {
+      box.dataset.image = "";
+    } else {
+      box.dataset.image = remaining[0].querySelector('img').src;
+    }
+  }
+};
+
+function renderModelFields(box) {
+  box.querySelector(".fields-weight").style.display = currentSaleType === "weight" ? "block" : "none";
+  box.querySelector(".fields-unit").style.display = currentSaleType === "unit" ? "block" : "none";
+}
+
+function collectModels() {
+  const boxes = document.querySelectorAll("#models-container .model-box");
+  const models = [];
+  boxes.forEach(box => {
+    const name = box.querySelector(".m-name").value.trim() || "استاندارد";
+    const image = box.dataset.image || "";
+    if (currentSaleType === "weight") {
+      const pricePerKg = parseFloat(box.querySelector(".m-priceperkg").value) || 0;
+      const presetWeights = box.querySelector(".m-presets").value.split(",").map(s => parseInt(s.trim())).filter(n => n > 0);
+      const allowCustomWeight = box.querySelector(".m-customweight").checked;
+      models.push({ name, image, pricePerKg, presetWeights, allowCustomWeight });
+    } else {
+      const price = parseFloat(box.querySelector(".m-price").value) || 0;
+      const stock = parseInt(box.querySelector(".m-stock").value) || 0;
+      models.push({ name, image, price, stock });
+    }
+  });
+  return models;
+}
+
+document.getElementById("p-images-input").addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files);
+  const gallery = document.getElementById("p-images-gallery");
+  for (const file of files) {
+    try {
+      const url = await uploadImageToCloudinary(file);
+      uploadedImages.push(url);
+      const div = document.createElement("div");
+      div.className = "image-item";
+      div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeProductImage(this, '${url}')">✕</button>`;
+      gallery.appendChild(div);
+    } catch (err) { alert("خطا در آپلود عکس: " + err.message); }
+  }
+  e.target.value = "";
+});
+
+window.removeProductImage = function(btn, imageUrl) {
+  const item = btn.closest('.image-item');
+  if (item) {
+    item.remove();
+    const index = uploadedImages.indexOf(imageUrl);
+    if (index > -1) {
+      uploadedImages.splice(index, 1);
+    }
+  }
+};
+
+window.resetProductForm = function () {
+  document.getElementById("product-id").value = "";
+  document.getElementById("p-name").value = "";
+  document.getElementById("p-desc").value = "";
+  document.getElementById("p-featured").checked = false;
+  document.getElementById("p-new").checked = false;
+  document.getElementById("p-active").checked = true;
+  document.getElementById("models-container").innerHTML = "";
+  document.getElementById("p-images-gallery").innerHTML = "";
+  uploadedImages = [];
+  document.getElementById("product-form-title").innerText = "افزودن محصول جدید";
+  setSaleType("weight");
+  addModelRow();
+  currentProductId = null;
+};
+
+window.saveProduct = async function () {
+  const statusEl = document.getElementById("product-status");
+  const id = document.getElementById("product-id").value;
+  const name = document.getElementById("p-name").value.trim();
+  const categoryId = document.getElementById("p-category").value;
+  const description = document.getElementById("p-desc").value.trim();
+  const featured = document.getElementById("p-featured").checked;
+  const isNew = document.getElementById("p-new").checked;
+  const active = document.getElementById("p-active").checked;
+  const models = collectModels();
+
+  if (!name) { statusEl.innerHTML = `<div class="status-msg status-err">نام محصول را وارد کن</div>`; return; }
+  if (models.length === 0) { statusEl.innerHTML = `<div class="status-msg status-err">حداقل یک مدل اضافه کن</div>`; return; }
+
+  const productData = {
+    name, categoryId, description, featured, new: isNew, active,
+    saleType: currentSaleType,
+    models,
+    images: uploadedImages,
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (id) { await updateDoc(doc(db, "products", id), productData); }
+    else { productData.createdAt = new Date().toISOString(); await addDoc(collection(db, "products"), productData); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">محصول ذخیره شد ✅</div>`;
+    resetProductForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editProduct = async function (id) {
+  const snap = await getDoc(doc(db, "products", id));
+  if (!snap.exists()) return;
+  const p = snap.data();
+  currentProductId = id;
+  document.getElementById("product-id").value = id;
+  document.getElementById("p-name").value = p.name || "";
+  document.getElementById("p-category").value = p.categoryId || "";
+  document.getElementById("p-desc").value = p.description || "";
+  document.getElementById("p-featured").checked = !!p.featured;
+  document.getElementById("p-new").checked = !!p.new;
+  document.getElementById("p-active").checked = p.active !== false;
+  document.getElementById("product-form-title").innerText = "ویرایش محصول";
+
+  uploadedImages = p.images || [];
+  const gallery = document.getElementById("p-images-gallery");
+  gallery.innerHTML = "";
+  uploadedImages.forEach(url => {
+    const div = document.createElement("div");
+    div.className = "image-item";
+    div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeProductImage(this, '${url}')">✕</button>`;
+    gallery.appendChild(div);
+  });
+
+  setSaleType(p.saleType || "weight");
+  document.getElementById("models-container").innerHTML = "";
+  (p.models || []).forEach(m => addModelRow(m));
+
+  window.scrollTo(0, 0);
+};
+
+window.deleteProduct = async function (id) {
+  if (!confirm("حذف این محصول؟")) return;
+  await deleteDoc(doc(db, "products", id));
+};
+
+let allProductsCache = [];
+function loadProducts() {
+  const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    allProductsCache = [];
+    snapshot.forEach(docSnap => allProductsCache.push({ id: docSnap.id, ...docSnap.data() }));
+    renderProductsList();
+  });
+}
+
+window.renderProductsList = function () {
+  const listEl = document.getElementById("products-list");
+  const searchTerm = (document.getElementById("search-box").value || "").trim();
+  listEl.innerHTML = "";
+  const filtered = allProductsCache.filter(p => !searchTerm || (p.name || "").includes(searchTerm));
+
+  filtered.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const img = (p.images && p.images[0]) ? `<img class="thumb" src="${p.images[0]}">` : "";
+    const modelsText = (p.models || []).map(m => {
+      if (p.saleType === "unit") return `${m.name}: ${m.price} ريال (${m.stock} عدد)`;
+      return `${m.name}: ${m.pricePerKg} ريال/کیلو`;
+    }).join(" | ");
+    card.innerHTML = `
+      <div class="row">
+        ${img}
+        <div>
+          <strong>${p.name}</strong>
+          <span class="badge ${p.active !== false ? 'on' : ''}">${p.active !== false ? 'فعال' : 'غیرفعال'}</span>
+          ${p.featured ? '<span class="badge on">ویژه</span>' : ''}
+          ${p.new ? '<span class="badge on">جدید</span>' : ''}
+          <span class="badge">${p.saleType === 'unit' ? 'عددی' : 'وزنی'}</span>
+          <div style="font-size:13px;color:#aaa;margin-top:4px">${modelsText}</div>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <button class="secondary small" onclick="editProduct('${p.id}')">ویرایش</button>
+        <button class="danger small" onclick="deleteProduct('${p.id}')">حذف</button>
+      </div>
+    `;
+    listEl.appendChild(card);
+  });
+};
+
+setSaleType("weight");
+addModelRow();
+</script>
+</body>
+</html>
