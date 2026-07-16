@@ -647,7 +647,6 @@ let pendingPhone = "";
 let pendingName = "";
 let verificationCode = "";
 
-// ===== تم =====
 function loadTheme() {
   const dark = localStorage.getItem("shiraznuts_theme") === "dark";
   if (dark) { document.body.classList.add("dark-mode"); document.getElementById("themeBtn").innerText = "☀️"; }
@@ -660,14 +659,12 @@ function toggleTheme() {
 }
 window.toggleTheme = toggleTheme;
 
-// ===== دکمه بازگشت به بالا =====
 window.addEventListener("scroll", () => {
   const btn = document.querySelector(".back-to-top");
   if (window.scrollY > 400) btn.classList.add("show");
   else btn.classList.remove("show");
 });
 
-// ===== اسلایدر =====
 let slideIndex = 0;
 function initSlider() {
   const slides = document.querySelectorAll(".hero-slider .slide");
@@ -693,7 +690,6 @@ function goToSlide(idx) {
 }
 window.goToSlide = goToSlide;
 
-// ===== تایمر تخفیف =====
 async function loadOfferTimer() {
   try {
     const q = query(collection(db, "offers"), where("active", "==", true));
@@ -728,7 +724,6 @@ async function loadOfferTimer() {
   } catch (err) { console.error("خطأ في تحميل التخفيض:", err); }
 }
 
-// ===== بارگذاری تنظیمات تخفیف اولین خرید =====
 async function loadFirstPurchaseSettings() {
   try {
     const docRef = doc(db, "settings", "firstPurchaseDiscount");
@@ -755,7 +750,6 @@ async function loadFirstPurchaseSettings() {
   }
 }
 
-// ===== محاسبه تخفیف اولین خرید =====
 function getFirstPurchaseDiscount(cartTotal) {
   if (!firstPurchaseSettings) return 0;
   if (!firstPurchaseSettings.active) return 0;
@@ -775,7 +769,6 @@ function getFirstPurchaseDiscount(cartTotal) {
   return discount;
 }
 
-// ===== اعلان =====
 function showToast(message, icon = "✅") {
   const container = document.getElementById("toastContainer");
   const toast = document.createElement("div");
@@ -785,7 +778,6 @@ function showToast(message, icon = "✅") {
   setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
 }
 
-// ===== اشتراک‌گذاری =====
 window.shareProduct = function(platform) {
   const name = document.getElementById("pd-name").innerText;
   const url = window.location.href;
@@ -798,7 +790,6 @@ window.shareProduct = function(platform) {
   if (shareUrl) window.open(shareUrl, "_blank");
 };
 
-// ===== کد تخفیف =====
 window.applyCoupon = async function() {
   const input = document.getElementById("couponInput").value.trim().toUpperCase();
   const status = document.getElementById("couponStatus");
@@ -841,7 +832,6 @@ window.applyCoupon = async function() {
   }
 };
 
-// ===== منوی کناری =====
 window.toggleSidebar = function() {
   document.getElementById("sidebar").classList.toggle("active");
   document.getElementById("sidebarOverlay").classList.toggle("active");
@@ -869,7 +859,6 @@ function renderSidebarCategories() {
   });
 }
 
-// ===== کاربر =====
 function updateUserUI() {
   const user = currentUser;
   if (user) {
@@ -896,7 +885,6 @@ window.toggleUserPanel = function() {
   if (document.getElementById("userPanel").classList.contains("active")) updateUserUI();
 };
 
-// ===== ورود با واتساپ =====
 window.showLoginModal = function() {
   document.getElementById("loginModal").classList.add("active");
   document.getElementById("sendCodeBtn").style.display = "block";
@@ -986,7 +974,6 @@ window.logoutUser = function() {
   }
 };
 
-// ===== سفارشات =====
 window.showOrders = function() {
   if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
   document.getElementById("ordersModal").classList.add("active");
@@ -1028,7 +1015,6 @@ function getOrderStatus(status) {
   return map[status] || status;
 }
 
-// ===== پروفایل =====
 window.showProfile = function() {
   if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
   document.getElementById("profileModal").classList.add("active");
@@ -1070,34 +1056,32 @@ window.toggleNewsletter = function() {
   showToast(currentUser.newsletter ? "تم الاشتراك في النشرة البريدية" : "تم إلغاء الاشتراك", currentUser.newsletter ? "✅" : "❌");
 };
 
-// ===== سبد خرید =====
 window.clearCart = function() {
   if (cart.length === 0) return;
   if (confirm("هل تريد إفراغ السلة؟")) { cart = []; saveCart(); renderCartItems(); showToast("تم إفراغ السلة", "🗑️"); }
 };
 
-// ===== بارگذاری داده =====
 async function loadData() {
   try {
-    // بارگذاری دسته‌بندی‌ها
+    console.log("🔄 شروع بارگذاری داده...");
+    
     const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order")));
     allCategories = []; 
     catSnap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+    console.log(`✅ ${allCategories.length} دسته‌بندی بارگذاری شد`);
 
-    // بارگذاری محصولات
     const prodSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
     allProducts = []; 
     prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+    console.log(`✅ ${allProducts.length} محصول بارگذاری شد`);
 
-    // بارگذاری تخفیف‌ها
     const offerSnap = await getDocs(collection(db, "offers"));
     allOffers = []; 
     offerSnap.forEach(d => allOffers.push({ id: d.id, ...d.data() }));
+    console.log(`✅ ${allOffers.length} تخفیف بارگذاری شد`);
 
-    // بارگذاری تنظیمات تخفیف اولین خرید
     await loadFirstPurchaseSettings();
 
-    // نمایش همه چیز
     renderCategoryGrid();
     renderSidebarCategories();
     renderPremiumProducts();
@@ -1106,13 +1090,14 @@ async function loadData() {
     initSlider();
     loadOfferTimer();
     loadTheme();
+    
+    console.log("🎉 بارگذاری کامل شد!");
   } catch (error) {
-    console.error("خطا در بارگذاری داده:", error);
-    showToast("خطا في اتصال قاعدة البيانات", "❌");
+    console.error("❌ خطا در بارگذاری داده:", error);
+    showToast("خطا في اتصال قاعدة البيانات - تأكد من الاتصال بالإنترنت", "❌");
   }
 }
 
-// ===== تابع محاسبه قیمت با تخفیف (دسته‌بندی) =====
 function getProductPriceWithDiscount(product, originalPrice) {
   const now = new Date();
   let discount = 0;
@@ -1332,7 +1317,6 @@ function renderProductsGrid() {
   });
 }
 
-// ===== صفحه محصول =====
 window.openProduct = function(p) {
   currentProduct = p;
   currentModelIndex = 0;
@@ -1529,7 +1513,6 @@ window.addToCart = function() {
   showToast("تمت إضافة " + item.name + " إلى السلة", "🛒");
 };
 
-// ===== سبد خرید =====
 function saveCart() {
   localStorage.setItem("shiraznuts_cart", JSON.stringify(cart));
   renderCartBar();
@@ -1595,7 +1578,6 @@ function renderCartItems() {
 }
 window.removeFromCart = function(idx) { cart.splice(idx,1); saveCart(); renderCartItems(); };
 
-// ===== ارسال واتساپ =====
 window.sendWhatsAppOrder = async function() {
   if (cart.length === 0) return;
   const customerName = document.getElementById("customer-name").value.trim() || (currentUser ? currentUser.name : "");
@@ -1657,13 +1639,11 @@ window.sendWhatsAppOrder = async function() {
   cart = []; couponApplied = 0; saveCart(); closeCartModal(); showToast("تم إرسال الطلب بنجاح", "📤");
 };
 
-// ===== توابع placeholder =====
 window.showFeatured = function() { alert("قريباً سيتم عرض الأكثر مبيعاً"); };
 window.showNew = function() { alert("قريباً سيتم عرض المنتجات الجديدة"); };
 window.showGifts = function() { alert("قريباً سيتم عرض باقات الهدايا"); };
 window.openPage = function(page) { alert("صفحة " + page + " قريباً"); };
 
-// ===== شروع =====
 renderCartBar();
 loadData();
 </script>
