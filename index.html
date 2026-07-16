@@ -438,7 +438,7 @@
   </div>
 
   <!-- تخفیف ویژه (از پنل مدیریت) -->
-  <div class="special-offer" id="specialOffer">
+  <div class="special-offer" id="specialOffer" style="display:none;">
     <div class="offer-title">🎉 عروض خاصة</div>
     <div class="offer-desc" id="offerDesc">خصم <strong>٣٠٪</strong> على جميع المكسرات حتى نهاية الأسبوع</div>
     <div class="timer" id="offerTimer">
@@ -613,7 +613,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
@@ -627,13 +627,11 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const WHATSAPP_NUMBER = "96898779009";
-const INSTAGRAM_URL = "https://www.instagram.com/Shiraznuts1992";
 
 let allCategories = [];
 let allProducts = [];
 let allOffers = [];
-let allCoupons = [];
-let firstPurchaseSettings = null; // تخفیف اولین خرید
+let firstPurchaseSettings = null;
 let currentCategoryId = null;
 let currentTopCategoryId = null;
 let currentView = "home";
@@ -674,6 +672,7 @@ let slideIndex = 0;
 function initSlider() {
   const slides = document.querySelectorAll(".hero-slider .slide");
   const dots = document.getElementById("sliderDots");
+  if (!dots) return;
   dots.innerHTML = "";
   slides.forEach((_, i) => {
     const dot = document.createElement("span");
@@ -737,7 +736,6 @@ async function loadFirstPurchaseSettings() {
     if (docSnap.exists()) {
       firstPurchaseSettings = docSnap.data();
     } else {
-      // ایجاد تنظیمات پیش‌فرض
       const defaultSettings = {
         active: true,
         discountPercent: 10,
@@ -767,7 +765,6 @@ function getFirstPurchaseDiscount(cartTotal) {
   if (firstPurchaseSettings.maxUses && firstPurchaseSettings.usedCount >= firstPurchaseSettings.maxUses) return 0;
   
   let discount = firstPurchaseSettings.discountPercent / 100;
-  // محدود کردن به حداکثر مبلغ تخفیف
   if (firstPurchaseSettings.maxDiscountAmount) {
     const maxDiscount = firstPurchaseSettings.maxDiscountAmount;
     const calculatedDiscount = cartTotal * discount;
@@ -852,6 +849,7 @@ window.toggleSidebar = function() {
 
 function renderSidebarCategories() {
   const container = document.getElementById("sidebar-categories");
+  if (!container) return;
   container.innerHTML = "";
   const mainCats = allCategories.filter(c => c.active !== false && !c.parentId);
   mainCats.forEach(cat => {
@@ -998,6 +996,7 @@ window.closeOrdersModal = function() { document.getElementById("ordersModal").cl
 
 async function loadOrdersList() {
   const container = document.getElementById("ordersList");
+  if (!container) return;
   container.innerHTML = "جاري التحميل...";
   if (!currentUser) return;
   try {
@@ -1082,19 +1081,23 @@ async function loadData() {
   try {
     // بارگذاری دسته‌بندی‌ها
     const catSnap = await getDocs(query(collection(db, "categories"), orderBy("order")));
-    allCategories = []; catSnap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+    allCategories = []; 
+    catSnap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
 
     // بارگذاری محصولات
     const prodSnap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-    allProducts = []; prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+    allProducts = []; 
+    prodSnap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
 
     // بارگذاری تخفیف‌ها
     const offerSnap = await getDocs(collection(db, "offers"));
-    allOffers = []; offerSnap.forEach(d => allOffers.push({ id: d.id, ...d.data() }));
+    allOffers = []; 
+    offerSnap.forEach(d => allOffers.push({ id: d.id, ...d.data() }));
 
     // بارگذاری تنظیمات تخفیف اولین خرید
     await loadFirstPurchaseSettings();
 
+    // نمایش همه چیز
     renderCategoryGrid();
     renderSidebarCategories();
     renderPremiumProducts();
@@ -1115,7 +1118,6 @@ function getProductPriceWithDiscount(product, originalPrice) {
   let discount = 0;
   let offerTitle = "";
   
-  // بررسی تخفیف‌های فعال از پنل مدیریت
   for (const offer of allOffers) {
     if (!offer.active) continue;
     const start = new Date(offer.startDate);
@@ -1141,9 +1143,14 @@ function getProductPriceWithDiscount(product, originalPrice) {
 
 function renderPremiumProducts() {
   const container = document.getElementById("premiumScroll");
+  if (!container) return;
   container.innerHTML = "";
   const featured = allProducts.filter(p => p.active !== false && p.featured === true);
-  if (featured.length === 0) { document.getElementById("premiumSection").style.display = "none"; return; }
+  if (featured.length === 0) { 
+    const section = document.getElementById("premiumSection");
+    if (section) section.style.display = "none"; 
+    return; 
+  }
   featured.slice(0, 10).forEach(p => {
     const img = (p.images && p.images[0]) || "";
     const originalPrice = cheapestModelPrice(p).price;
@@ -1167,9 +1174,14 @@ function renderPremiumProducts() {
 
 function renderNewProducts() {
   const container = document.getElementById("newScroll");
+  if (!container) return;
   container.innerHTML = "";
   const news = allProducts.filter(p => p.active !== false && p.new === true);
-  if (news.length === 0) { document.getElementById("newSection").style.display = "none"; return; }
+  if (news.length === 0) { 
+    const section = document.getElementById("newSection");
+    if (section) section.style.display = "none"; 
+    return; 
+  }
   news.slice(0, 8).forEach(p => {
     const img = (p.images && p.images[0]) || "";
     const originalPrice = cheapestModelPrice(p).price;
@@ -1195,6 +1207,7 @@ const CAT_ENGLISH = { nuts: "Nuts", saffron: "Saffron", coffee: "Coffee", sweets
 
 function renderCategoryGrid() {
   const grid = document.getElementById("cats-grid");
+  if (!grid) return;
   grid.innerHTML = "";
   allCategories.filter(c => c.active !== false && !c.parentId).forEach((cat, idx) => {
     const color = CAT_COLORS[idx % CAT_COLORS.length];
@@ -1253,6 +1266,7 @@ window.goBackCategoryPage = function() {
 
 function renderSubcategoryGrid(children) {
   const grid = document.getElementById("products-grid");
+  if (!grid) return;
   grid.className = "cat-grid";
   grid.innerHTML = "";
   children.forEach((cat, idx) => {
@@ -1287,6 +1301,7 @@ function cheapestModelPrice(p) {
 
 function renderProductsGrid() {
   const grid = document.getElementById("products-grid");
+  if (!grid) return;
   grid.className = "grid";
   grid.innerHTML = "";
   const filtered = allProducts.filter(p => p.active !== false && p.categoryId === currentCategoryId);
@@ -1475,7 +1490,6 @@ function updateLivePrice() {
   } else {
     price = Math.round(model.price * currentUnitQty * 100) / 100;
   }
-  // اعمال تخفیف محصول (دسته‌بندی)
   const priceInfo = getProductPriceWithDiscount(p, price);
   document.getElementById("pd-price-live").innerHTML = priceInfo.hasDiscount 
     ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:20px;">${price} ريال</span> ${priceInfo.price} <small>ريال</small> <span style="display:block;font-size:14px;color:#a33;">-${priceInfo.discount}% تخفیف</span>`
@@ -1522,6 +1536,7 @@ function saveCart() {
 }
 function renderCartBar() {
   const bar = document.getElementById("cart-bar");
+  if (!bar) return;
   const totalQty = cart.reduce((s,c)=>s+ (c.qty || 1), 0);
   const totalPrice = cart.reduce((s,c)=>s+c.lineTotal, 0);
   if (totalQty > 0) {
@@ -1535,13 +1550,13 @@ window.closeCartModal = function() { document.getElementById("cart-modal-bg").cl
 
 function renderCartItems() {
   const container = document.getElementById("cart-items");
+  if (!container) return;
   container.innerHTML = "";
   if (cart.length === 0) container.innerHTML = `<div class="empty-msg">السلة فارغة</div>`;
   let total = cart.reduce((s,c)=>s+c.lineTotal, 0);
   let discountApplied = 0;
   let discountType = "";
   
-  // تخفیف اولین خرید (واقعی)
   const firstPurchaseDisc = getFirstPurchaseDiscount(total);
   if (firstPurchaseDisc > 0) {
     discountApplied = firstPurchaseDisc;
@@ -1551,10 +1566,9 @@ function renderCartItems() {
     document.getElementById("firstPurchaseBadge").style.display = "none";
   }
   
-  // تخفیف کد (اگر بزرگتر باشد جایگزین می‌شود)
   if (couponApplied > discountApplied) {
     discountApplied = couponApplied;
-    discountType = "🎫 کد تخفیف";
+    discountType = "🎫 كود خصم";
   }
   
   if (discountApplied > 0) {
@@ -1592,7 +1606,6 @@ window.sendWhatsAppOrder = async function() {
   let discountApplied = 0;
   let discountType = "";
   
-  // تخفیف اولین خرید
   const firstPurchaseDisc = getFirstPurchaseDiscount(total);
   if (firstPurchaseDisc > 0) {
     discountApplied = firstPurchaseDisc;
@@ -1600,14 +1613,13 @@ window.sendWhatsAppOrder = async function() {
   }
   if (couponApplied > discountApplied) {
     discountApplied = couponApplied;
-    discountType = "🎫 کد تخفیف";
+    discountType = "🎫 كود خصم";
   }
   if (discountApplied > 0) {
     total = total * (1 - discountApplied);
   }
   total = Math.round(total * 100) / 100;
   
-  // بررسی اینکه آیا تخفیف اولین خرید اعمال شده است
   let usedFirstPurchase = false;
   if (currentUser && currentUser.firstPurchaseDiscount === true && firstPurchaseDisc > 0) {
     usedFirstPurchase = true;
@@ -1623,7 +1635,6 @@ window.sendWhatsAppOrder = async function() {
       discountType: discountType,
       createdAt: new Date().toISOString()
     });
-    // بعد از ثبت سفارش، تخفیف اولین خرید غیرفعال می‌شود
     if (usedFirstPurchase) {
       currentUser.firstPurchaseDiscount = false;
       localStorage.setItem("shiraznuts_user", JSON.stringify(currentUser));
@@ -1632,7 +1643,6 @@ window.sendWhatsAppOrder = async function() {
       if (!snapshot.empty) {
         await updateDoc(doc(db, "users", snapshot.docs[0].id), { firstPurchaseDiscount: false });
       }
-      // به‌روزرسانی آمار استفاده
       if (firstPurchaseSettings) {
         firstPurchaseSettings.usedCount = (firstPurchaseSettings.usedCount || 0) + 1;
         await updateDoc(doc(db, "settings", "firstPurchaseDiscount"), { usedCount: firstPurchaseSettings.usedCount });
@@ -1658,4 +1668,4 @@ renderCartBar();
 loadData();
 </script>
 </body>
-  </html>
+ </html>
