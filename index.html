@@ -3,16 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shiraz Nuts | متجر فاخر للمكسرات الإيرانية</title>
+<title>ShirazNuts | متجر فاخر للمكسرات الإيرانية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* ===== تنظیمات پایه ===== */
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--gold:#b8860b;--gold-light:#d4af37;--gold-dark:#8b6b0a;--dark:#1a1512;--light:#faf7f2}
   html,body{overflow-x:hidden;max-width:100vw;scroll-behavior:smooth}
   body{font-family:'Tajawal',Tahoma,Arial,sans-serif;background:var(--light);color:#2b2420;padding-bottom:70px;min-height:100vh;transition:background .3s,color .3s}
   body.dark-mode{background:#0f0d0b;color:#f0ebe4}
   ::-webkit-scrollbar{display:none}
+  
+  /* ===== تم تاریک ===== */
   body.dark-mode .product-card,body.dark-mode .premium-card,body.dark-mode .cat-card,body.dark-mode .product-gallery-modern,body.dark-mode .modal,body.dark-mode .user-panel,body.dark-mode .login-modal .login-box,body.dark-mode .benefit-card,body.dark-mode .new-card,body.dark-mode .related-card{background:#1a1512!important;border-color:#333!important;color:#f0ebe4!important}
   body.dark-mode .product-card .name,body.dark-mode .premium-card .name,body.dark-mode .new-card .name,body.dark-mode .related-card .name{color:#f0ebe4!important}
   body.dark-mode .product-card .price,body.dark-mode .premium-card .price,body.dark-mode .new-card .price,body.dark-mode .related-card .price{color:var(--gold-light)!important}
@@ -33,6 +36,8 @@
   body.dark-mode .footer{background:#0a0806!important}
   body.dark-mode .footer .footer-brand span{color:var(--gold-light)}
   body.dark-mode .toast{background:#1a1512!important;border-color:var(--gold-light)!important}
+  
+  /* ===== هدر ===== */
   header.site{text-align:center;padding:26px 12px 14px;position:relative;background:linear-gradient(180deg,var(--dark)0%,var(--light)100%);padding-top:40px;transition:background .3s}
   header.site .logo{font-family:'Cairo',sans-serif;font-size:36px;font-weight:900;color:var(--gold-light);letter-spacing:3px;text-shadow:0 2px 12px rgba(184,134,11,.2);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
   header.site .logo span{color:#fff}
@@ -50,9 +55,11 @@
   .profile-btn:hover{transform:scale(1.08)}
   .profile-btn .badge{position:absolute;top:-4px;right:-4px;background:#a33;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center}
   
+  /* ===== دکمه بازگشت ===== */
   .back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--gold);font-size:14px;padding:8px 14px;cursor:pointer;font-weight:bold;flex-direction:row-reverse;background:rgba(255,255,255,0.92);border-radius:10px;margin:4px 8px 0 0;box-shadow:0 2px 8px rgba(0,0,0,0.06);z-index:10;position:relative}
   .back-btn:hover{color:var(--gold-dark)}
   
+  /* ===== دکمه بستن ===== */
   .close-btn{position:absolute;left:12px;top:12px;background:rgba(0,0,0,0.4);color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;z-index:10;cursor:pointer;border:none;transition:all .2s;font-size:16px}
   .close-btn:hover{background:rgba(0,0,0,0.7);transform:rotate(90deg)}
   
@@ -67,6 +74,7 @@
   .back-to-top.show{opacity:1;transform:scale(1);pointer-events:auto}
   .back-to-top:hover{transform:scale(1.1)}
   
+  /* ===== سایدبار ===== */
   .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;display:none;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   .sidebar-overlay.active{display:block}
   .sidebar{position:fixed;top:0;right:-340px;width:320px;max-width:85vw;height:100vh;background:linear-gradient(180deg,#1a1512 0%,#0f0d0b 100%);color:#f5f0ea;z-index:100;transition:right .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:20px 16px 30px;box-shadow:-8px 0 30px rgba(0,0,0,.5)}
@@ -83,9 +91,9 @@
   .sidebar-link .icon{font-size:16px}
   .sidebar-footer{border-top:1px solid rgba(184,134,11,.15);padding-top:12px;margin-top:12px}
   
-  /* ===== اسلایدر بزرگتر ===== */
+  /* ===== اسلایدر ===== */
   .hero-slider{position:relative;height:350px;margin:8px 12px 12px;border-radius:20px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.12)}
-  .hero-slider .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px 20px;opacity:0;transition:opacity .8s;background-size:cover;background-position:center}
+  .hero-slider .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px 20px;opacity:0;transition:opacity .8s;background-size:cover;background-position:center;cursor:pointer}
   .hero-slider .slide.active{opacity:1}
   .hero-slider .slide::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(26,21,18,.7)0,rgba(26,21,18,.3)100%)}
   .hero-slider .slide-content{position:relative;z-index:2;color:#fff}
@@ -97,23 +105,10 @@
   .hero-slider .dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3}
   .hero-slider .dots span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:all .3s}
   .hero-slider .dots span.active{background:var(--gold-light);transform:scale(1.2)}
-  
-  /* ===== دکمه رد کردن اسلایدر ===== */
   .skip-slider-btn{position:absolute;top:12px;left:12px;z-index:5;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;transition:all .3s;backdrop-filter:blur(4px)}
   .skip-slider-btn:hover{background:rgba(0,0,0,0.7);transform:scale(1.05)}
   
-  /* ===== دسته‌بندی‌ها با عکس بزرگتر ===== */
-  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:4px 12px 16px}
-  .cat-card{position:relative;border-radius:18px;overflow:hidden;height:200px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);transition:transform .3s,box-shadow .3s;animation:fadeInUp .45s ease both;background:linear-gradient(135deg,#3E7CB1,#2a5a7a)}
-  .cat-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 12px 36px rgba(0,0,0,.2)}
-  .cat-card:active{transform:scale(.95)}
-  @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-  .cat-card .circle-img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.85);box-shadow:0 4px 14px rgba(0,0,0,.2);margin-bottom:12px;background:rgba(255,255,255,.15)}
-  .cat-card .circle-fallback{width:100px;height:100px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:12px}
-  .cat-card .name-ar{color:#fff;font-size:18px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.2)}
-  .cat-card .name-en{color:rgba(255,255,255,.85);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-weight:500}
-  
-  /* ===== بقیه استایل‌ها ===== */
+  /* ===== بخش مزایا ===== */
   .benefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 12px 16px}
   .benefit-card{background:#fff;border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.04);border:1px solid rgba(184,134,11,.08);transition:all .3s}
   .benefit-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(184,134,11,.1);border-color:var(--gold)}
@@ -121,6 +116,7 @@
   .benefit-card .title{font-size:13px;font-weight:700;color:#2b2420}
   .benefit-card .desc{font-size:11px;color:#8a7f6f;margin-top:2px}
   
+  /* ===== تخفیف ویژه ===== */
   .special-offer{background:linear-gradient(135deg,#a33,#c0392b);color:#fff;padding:14px 16px;border-radius:14px;margin:4px 12px 12px;text-align:center;box-shadow:0 4px 20px rgba(192,57,43,.3);display:none}
   .special-offer .timer{display:inline-flex;gap:12px;margin-top:8px;font-family:'Cairo',sans-serif;font-weight:700;font-size:20px;background:rgba(0,0,0,.2);padding:6px 16px;border-radius:10px}
   .special-offer .timer .unit{font-size:12px;opacity:.7;font-weight:400}
@@ -129,6 +125,7 @@
   .special-offer .btn-offer{display:inline-block;padding:8px 24px;background:#fff;color:#a33;border:none;border-radius:25px;font-weight:700;font-size:13px;margin-top:8px;cursor:pointer;transition:all .3s}
   .special-offer .btn-offer:hover{transform:scale(1.05)}
   
+  /* ===== بخش‌های اسکرول ===== */
   .premium-section,.new-section,.related-section{padding:8px 12px 16px}
   .section-header{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
   .section-header .title{font-family:'Cairo',sans-serif;font-size:20px;color:#1a1512;display:flex;align-items:center;gap:8px}
@@ -146,6 +143,18 @@
   .premium-scroll .premium-card .price,.new-scroll .new-card .price,.related-scroll .related-card .price{color:var(--gold);font-size:14px;font-weight:700}
   .new-scroll .new-card .badge-new-sm{display:inline-block;background:#4CA771;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:12px;margin-top:2px}
   
+  /* ===== دسته‌بندی‌ها ===== */
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:4px 12px 16px}
+  .cat-card{position:relative;border-radius:18px;overflow:hidden;height:200px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);transition:transform .3s,box-shadow .3s;animation:fadeInUp .45s ease both;background:linear-gradient(135deg,#3E7CB1,#2a5a7a)}
+  .cat-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 12px 36px rgba(0,0,0,.2)}
+  .cat-card:active{transform:scale(.95)}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .cat-card .circle-img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.85);box-shadow:0 4px 14px rgba(0,0,0,.2);margin-bottom:12px;background:rgba(255,255,255,.15)}
+  .cat-card .circle-fallback{width:100px;height:100px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:12px}
+  .cat-card .name-ar{color:#fff;font-size:18px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .cat-card .name-en{color:rgba(255,255,255,.85);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-weight:500}
+  
+  /* ===== محصولات ===== */
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 12px 16px}
   .product-card{background:#fff;border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.06);transition:all .35s cubic-bezier(.175,.885,.32,1.275);border:1px solid rgba(184,134,11,.06)}
   .product-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(184,134,11,.12);border-color:rgba(184,134,11,.2)}
@@ -153,14 +162,18 @@
   .product-card .card-img-wrap .img-inner{position:relative;overflow:hidden;border-radius:14px 14px 0 0}
   .product-card .card-img-wrap img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;transition:transform .4s;background:#f8f4ee}
   .product-card:hover .card-img-wrap img{transform:scale(1.04)}
-  .badge-featured{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;z-index:2;box-shadow:0 2px 8px rgba(184,134,11,.3)}
+  
+  /* ===== برچسب‌های محصول (اصلاح شده) ===== */
+  .badge-featured{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;z-index:2;box-shadow:0 2px 8px rgba(184,134,11,.3)}
   .badge-new{position:absolute;top:10px;right:10px;background:#4CA771;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;z-index:2}
   .badge-discount{position:absolute;bottom:10px;right:10px;background:#a33;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;z-index:2}
+  
   .product-card .info{padding:12px 14px 14px}
   .product-card .name{font-size:14px;color:#2b2420;font-weight:600;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .product-card .price-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .product-card .price{color:var(--gold);font-size:14px;font-weight:700}
   .product-card .old-price{color:#b0a58f;text-decoration:line-through;font-size:12px}
+  .product-card .name-en-small{font-size:11px;color:#8a7f6f;display:block;margin-top:2px}
   .empty-msg{text-align:center;color:#b0a58f;padding:50px 20px;grid-column:1/-1}
   
   /* ===== صفحه محصول ===== */
@@ -211,6 +224,7 @@
   .add-cart-btn{width:100%;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#fff;border:none;padding:15px;border-radius:12px;font-weight:700;font-size:16px;transition:all .3s;cursor:pointer}
   .add-cart-btn:hover{transform:scale(1.02);box-shadow:0 4px 20px rgba(184,134,11,.3)}
   
+  /* ===== پنل کاربری ===== */
   .user-panel{position:fixed;top:0;right:0;left:0;bottom:0;background:var(--light);z-index:100;display:none;padding:20px;overflow-y:auto}
   .user-panel.active{display:block;animation:slideIn .3s ease}
   @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
@@ -225,6 +239,7 @@
   .user-panel .menu-item .text{flex:1}
   .user-panel .menu-item .arrow{color:var(--gold)}
   
+  /* ===== مودال ورود ===== */
   .login-modal{position:fixed;top:0;right:0;left:0;bottom:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
   .login-modal.active{display:flex;animation:fadeIn .3s ease}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -234,10 +249,8 @@
   .login-modal .login-box button{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:16px;margin-top:10px;transition:all .2s;cursor:pointer}
   .login-modal .login-box button:hover{background:var(--gold-dark)}
   .login-modal .login-box .close-login{float:left;cursor:pointer;font-size:24px;color:#a33}
-  .login-modal .login-box .verify-row{display:flex;gap:8px;margin:8px 0}
-  .login-modal .login-box .verify-row input{flex:1;margin:0}
-  .login-modal .login-box .verify-row button{width:auto;padding:12px 20px;margin:0;background:#4CA771}
   
+  /* ===== سبد خرید ===== */
   .cart-bar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#fff;display:none;justify-content:space-between;align-items:center;padding:16px 20px;font-weight:700;cursor:pointer;z-index:50;animation:slideUp .3s ease}
   .cart-bar.show{display:flex}
   @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -255,6 +268,7 @@
   
   .first-purchase-badge{display:inline-block;background:#4CA771;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:4px 0}
   
+  /* ===== فوتر ===== */
   .footer{background:var(--dark);color:#c4b998;padding:30px 16px 20px;margin-top:12px;text-align:center;border-top:3px solid var(--gold)}
   .footer .footer-brand{font-family:'Cairo',sans-serif;font-size:24px;font-weight:900;color:var(--gold-light)}
   .footer .footer-brand span{color:#fff}
@@ -265,16 +279,21 @@
   .footer .footer-links a:hover{color:var(--gold-light)}
   .footer .footer-divider{width:60px;height:2px;background:var(--gold);margin:12px auto;opacity:.3}
   .footer .copyright{font-size:12px;color:#6b6154}
-  .footer .social-icons{display:flex;justify-content:center;gap:16px;margin:8px 0}
-  .footer .social-icons a{color:#8a7f6f;font-size:20px;text-decoration:none;transition:all .2s}
-  .footer .social-icons a:hover{color:var(--gold-light);transform:scale(1.1)}
   
+  /* ===== آیکون‌های شبکه‌های اجتماعی (اصلاح شده) ===== */
+  .footer .social-icons{display:flex;justify-content:center;gap:16px;margin:8px 0}
+  .footer .social-icons a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);color:#8a7f6f;font-size:20px;text-decoration:none;transition:all .2s}
+  .footer .social-icons a:hover{color:var(--gold-light);background:rgba(255,255,255,0.15);transform:scale(1.1)}
+  .footer .social-icons a svg{width:20px;height:20px;fill:currentColor}
+  
+  /* ===== اعلان ===== */
   .toast-container{position:fixed;bottom:100px;right:50%;transform:translateX(50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
   .toast{background:var(--dark);color:#fff;padding:12px 24px;border-radius:12px;font-weight:500;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.2);animation:toastIn .4s ease,toastOut .4s ease 2.6s forwards;border-right:4px solid var(--gold-light);pointer-events:auto;min-width:200px;text-align:center}
   @keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
   @keyframes toastOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-20px) scale(.9)}}
   .toast .toast-icon{margin-left:8px}
   
+  /* ===== Responsive ===== */
   @media(max-width:480px){.hero-slider{height:260px}
   .hero-slider .slide-content h2{font-size:22px}
   .hero-slider .slide-content p{font-size:14px}
@@ -316,10 +335,16 @@
 <!-- ===== سایدبار ===== -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-header"><div class="brand"><span class="gold">✦</span> Shiraz Nuts</div><button class="close-sidebar" onclick="toggleSidebar()">✕</button></div>
+  <div class="sidebar-header"><div class="brand"><span class="gold">✦</span> ShirazNuts</div><button class="close-sidebar" onclick="toggleSidebar()">✕</button></div>
   <div class="sidebar-content">
+    <div class="sidebar-section">
+      <div class="section-title">⭐ أقسام مميزة</div>
+      <div class="sidebar-link" onclick="goHome(); toggleSidebar();"><span class="icon">🏠</span> الرئيسية</div>
+      <div class="sidebar-link" onclick="showFeatured(); toggleSidebar();"><span class="icon">🔥</span> الأكثر مبيعاً</div>
+      <div class="sidebar-link" onclick="showNew(); toggleSidebar();"><span class="icon">🆕</span> الجديد</div>
+      <div class="sidebar-link" onclick="showGifts(); toggleSidebar();"><span class="icon">🎁</span> باقات الهدايا</div>
+    </div>
     <div class="sidebar-section"><div class="section-title">📌 التصنيفات</div><div id="sidebar-categories"></div></div>
-    <div class="sidebar-section"><div class="section-title">⭐ أقسام مميزة</div><div class="sidebar-link" onclick="goHome(); toggleSidebar();"><span class="icon">🏠</span> الرئيسية</div><div class="sidebar-link" onclick="showFeatured(); toggleSidebar();"><span class="icon">🔥</span> الأكثر مبيعاً</div><div class="sidebar-link" onclick="showNew(); toggleSidebar();"><span class="icon">🆕</span> الجديد</div><div class="sidebar-link" onclick="showGifts(); toggleSidebar();"><span class="icon">🎁</span> باقات الهدايا</div></div>
     <div class="sidebar-section"><div class="section-title">ℹ️ معلومات</div><div class="sidebar-link" onclick="openPage('about'); toggleSidebar();"><span class="icon">📖</span> عن المتجر</div><div class="sidebar-link" onclick="openPage('contact'); toggleSidebar();"><span class="icon">📞</span> اتصل بنا</div><div class="sidebar-link" onclick="openPage('shipping'); toggleSidebar();"><span class="icon">📦</span> سياسة الشحن</div></div>
     <div class="sidebar-footer"><div class="sidebar-link" onclick="toggleUserPanel(); toggleSidebar();"><span class="icon">👤</span> حسابي</div><div class="sidebar-link" onclick="openCartModal(); toggleSidebar();"><span class="icon">🛒</span> السلة</div><div class="sidebar-link" onclick="toggleTheme(); toggleSidebar();"><span class="icon">🌙</span> الوضع الليلي</div></div>
   </div>
@@ -346,9 +371,8 @@
     <h2 style="color:var(--gold);margin-bottom:20px;font-family:'Cairo',sans-serif;">تسجيل الدخول</h2>
     <input type="text" id="loginPhone" placeholder="رقم الهاتف (مثلاً 91234567)">
     <input type="text" id="loginName" placeholder="الاسم الكامل (للتسجيل الجديد)">
-    <div class="verify-row" style="display:none;" id="verifyRow"><input type="text" id="verifyCode" placeholder="أدخل كود التأكيد"><button onclick="verifyCode()">تأكيد</button></div>
-    <button onclick="sendVerificationCode()" id="sendCodeBtn">إرسال كود التأكيد</button>
     <div id="loginStatus" style="margin-top:10px;color:#a33;font-size:13px;"></div>
+    <button onclick="loginUser()">دخول / تسجيل</button>
   </div>
 </div>
 
@@ -357,7 +381,7 @@
 
 <!-- ===== مودال پروفایل ===== -->
 <div class="modal-bg" id="profileModal">
-  <div class="modal"><div class="close-btn" style="position:absolute;left:12px;top:12px" onclick="closeProfileModal()">✕</div><h2 style="color:var(--gold);margin-bottom:12px;font-family:'Cairo',sans-serif;">👤 الملف الشخصي</h2><label style="color:#8a7f6f;font-size:13px;">الاسم الكامل</label><input type="text" id="editName" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin:4px 0;"><label style="color:#8a7f6f;font-size:13px;">رقم الهاتف</label><input type="text" id="editPhone" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin:4px 0;" readonly><label style="color:#8a7f6f;font-size:13px;">البريد الإلكتروني (اختياري)</label><input type="email" id="editEmail" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin:4px 0;"><button onclick="saveProfile()" style="width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-weight:bold;font-size:16px;margin-top:12px;cursor:pointer;">حفظ التغييرات</button></div>
+  <div class="modal"><div class="close-btn" style="position:absolute;left:12px;top:12px" onclick="closeProfileModal()">✕</div><h2 style="color:var(--gold);margin-bottom:12px;font-family:'Cairo',sans-serif;">👤 الملف الشخصي</h2><label style="color:#8a7f6f;font-size:13px;">الاسم الكامل</label><input type="text" id="editName" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin:4px 0;"><label style="color:#8a7f6f;font-size:13px;">رقم الهاتف</label><input type="text" id="editPhone" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin:4px 0;" readonly><button onclick="saveProfile()" style="width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-weight:bold;font-size:16px;margin-top:12px;cursor:pointer;">حفظ التغييرات</button></div>
 </div>
 
 <!-- ===== اعلان‌ها ===== -->
@@ -365,14 +389,11 @@
 
 <!-- ===== صفحه اصلی ===== -->
 <div id="home-page">
-  <header class="site"><div class="logo">Shiraz <span>Nuts</span><span class="gold-dot"></span></div><p class="subtitle">أرقى المكسرات والحلويات الإيرانية الأصيلة</p><div class="ornament-line">— ✦ —</div></header>
+  <header class="site"><div class="logo">Shiraz<span>Nuts</span><span class="gold-dot"></span></div><p class="subtitle">أرقى المكسرات والحلويات الإيرانية الأصيلة</p><div class="ornament-line">— ✦ —</div></header>
   
-  <!-- ===== اسلایدر با دکمه رد کردن ===== -->
+  <!-- ===== اسلایدر ===== -->
   <div class="hero-slider" id="heroSlider">
     <button class="skip-slider-btn" onclick="skipSlider()">✕ تخطي</button>
-    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800&h=400&fit=crop&auto=format');"><div class="slide-content"><h2>أرقى <span class="gold">المكسرات</span> الإيرانية</h2><p>جودة لا تضاهى، طعم الأصالة، توصيل سريع</p><div><button class="btn-hero" onclick="document.getElementById('cats-grid').scrollIntoView({behavior:'smooth'})">تسوق الآن</button><button class="btn-hero" style="background:transparent;border:2px solid rgba(255,255,255,0.6);margin-right:8px;" onclick="document.getElementById('premiumSection').scrollIntoView({behavior:'smooth'})">الأكثر مبيعاً</button></div></div></div>
-    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&h=400&fit=crop&auto=format');"><div class="slide-content"><h2>زعفران <span class="gold">VIP</span> إيراني</h2><p>أجود أنواع الزعفران بأسعار تنافسية</p><button class="btn-hero" onclick="openCategory('saffron')">اكتشف المجموعة</button></div></div>
-    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&h=400&fit=crop&auto=format');"><div class="slide-content"><h2>هدايا <span class="gold">فاخرة</span></h2><p>باقات مميزة تناسب كل المناسبات</p><button class="btn-hero" onclick="showGifts()">اطلب الآن</button></div></div>
     <div class="dots" id="sliderDots"></div>
   </div>
   
@@ -389,10 +410,10 @@
   
   <div class="new-section" id="newSection"><div class="section-header"><div class="title"><span class="gold">✦</span> جديدنا <span class="gold">✦</span></div><span class="more" onclick="showNew()">عرض الكل →</span></div><div class="new-scroll" id="newScroll"></div></div>
   
-  <!-- ===== دسته‌بندی‌ها با عکس بزرگتر ===== -->
+  <!-- ===== دسته‌بندی‌ها ===== -->
   <div class="cat-grid" id="cats-grid"></div>
   
-  <div style="padding:8px 16px 4px;"><div style="background:#fff;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(184,134,11,0.08);"><h3 style="font-family:'Cairo',sans-serif;color:var(--gold);font-size:20px;">✦ عن Shiraz Nuts ✦</h3><p style="color:#6b6154;font-size:14px;line-height:1.8;margin:8px 0;">نقدم لكم <strong style="color:var(--gold);">أرقى المكسرات الإيرانية</strong> بجودة استثنائية وأسعار تنافسية. نختار لكم أفضل المنتجات من أجود المزارع الإيرانية، ونوصلها لكم طازجة وسريعة. <br><strong style="color:var(--gold);">شيراز ناتس</strong> .. طعم الأصالة في كل حبة.</p></div></div>
+  <div style="padding:8px 16px 4px;"><div style="background:#fff;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(184,134,11,0.08);"><h3 style="font-family:'Cairo',sans-serif;color:var(--gold);font-size:20px;">✦ عن ShirazNuts ✦</h3><p style="color:#6b6154;font-size:14px;line-height:1.8;margin:8px 0;">نقدم لكم <strong style="color:var(--gold);">أرقى المكسرات الإيرانية</strong> بجودة استثنائية وأسعار تنافسية. نختار لكم أفضل المنتجات من أجود المزارع الإيرانية، ونوصلها لكم طازجة وسريعة. <br><strong style="color:var(--gold);">شيراز ناتس</strong> .. طعم الأصالة في كل حبة.</p></div></div>
 </div>
 
 <!-- ===== صفحه دسته ===== -->
@@ -439,6 +460,9 @@
     <div id="couponStatus" style="font-size:13px;color:#a33;margin-bottom:8px;"></div>
     <label style="color:#8a7f6f;font-size:13px;margin-top:10px;">اسمك</label><input type="text" id="customer-name" placeholder="الاسم الكامل" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin-top:4px;">
     <label style="color:#8a7f6f;font-size:13px;margin-top:10px;">رقم الهاتف</label><input type="tel" id="customer-phone" placeholder="مثلاً 91234567" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ddd2ba;background:#fff;color:#2b2420;margin-top:4px;">
+    <div style="background:#f0e9dc;padding:12px;border-radius:10px;margin:8px 0;text-align:center;" id="guestDiscountMsg">
+      <p style="color:#2b2420;font-size:13px;">💡 سجل الآن واحصل على <strong style="color:var(--gold);">خصم 10%</strong> على أول طلب!</p>
+    </div>
     <button class="checkout-btn" onclick="sendWhatsAppOrder()">📤 إرسال الطلب عبر واتساب</button>
     <button onclick="clearCart()" style="width:100%;padding:12px;background:#a33;color:#fff;border:none;border-radius:12px;font-weight:bold;margin-top:8px;cursor:pointer;">🗑️ إفراغ السلة</button>
   </div>
@@ -446,18 +470,25 @@
 
 <!-- ===== فوتر ===== -->
 <div class="footer">
-  <div class="footer-brand">Shiraz <span>Nuts</span></div>
+  <div class="footer-brand">Shiraz<span>Nuts</span></div>
   <div class="slogan">✦ أرقى المكسرات الإيرانية ✦</div>
   <div class="slogan-sub">جودة لا تضاهى .. طعم الأصالة .. توصيل سريع</div>
   <div class="footer-divider"></div>
   <div class="footer-links"><a href="#" onclick="openPage('about')">عن المتجر</a><a href="#" onclick="openPage('contact')">اتصل بنا</a><a href="#" onclick="openPage('shipping')">سياسة الشحن</a><a href="#" onclick="openPage('privacy')">سياسة الخصوصية</a></div>
-  <div class="social-icons"><a href="https://wa.me/96898779009" target="_blank" title="واتساب">📱</a><a href="https://www.instagram.com/Shiraznuts1992" target="_blank" title="إنستغرام">📸</a><a href="#" target="_blank" title="فيسبوك">📘</a><a href="#" target="_blank" title="تويتر">🐦</a></div>
-  <div class="copyright">© 2026 Shiraz Nuts. جميع الحقوق محفوظة</div>
+  <div class="social-icons">
+    <a href="https://wa.me/96898779009" target="_blank" title="واتساب">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/Shiraznuts1992" target="_blank" title="إنستغرام">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1112.324 0 6.162 6.162 0 01-12.324 0zM12 16a4 4 0 110-8 4 4 0 010 8zm4.965-10.405a1.44 1.44 0 112.881.001 1.44 1.44 0 01-2.881-.001z"/></svg>
+    </a>
+  </div>
+  <div class="copyright">© 2026 ShirazNuts. جميع الحقوق محفوظة</div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, query, orderBy, doc, where, updateDoc, getDoc, setDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
@@ -487,28 +518,8 @@ let cart = JSON.parse(localStorage.getItem("shiraznuts_cart") || "[]");
 let currentUser = JSON.parse(localStorage.getItem("shiraznuts_user") || "null");
 let couponApplied = 0;
 let timerInterval = null;
-let pendingPhone = "";
-let pendingName = "";
-let verificationCode = "";
 
-// ===== تابع رد کردن اسلایدر =====
-window.skipSlider = function() {
-  const slider = document.getElementById("heroSlider");
-  if (slider) {
-    slider.style.display = "none";
-    localStorage.setItem("shiraznuts_skipped_slider", "true");
-  }
-};
-
-// ===== بررسی وضعیت رد کردن اسلایدر =====
-function checkSliderSkipped() {
-  if (localStorage.getItem("shiraznuts_skipped_slider") === "true") {
-    const slider = document.getElementById("heroSlider");
-    if (slider) slider.style.display = "none";
-  }
-}
-
-// ===== تم =====
+// ===== توابع کاربر =====
 function loadTheme() {
   const dark = localStorage.getItem("shiraznuts_theme") === "dark";
   if (dark) { document.body.classList.add("dark-mode"); document.getElementById("themeBtn").innerText = "☀️"; }
@@ -520,13 +531,6 @@ function toggleTheme() {
   localStorage.setItem("shiraznuts_theme", isDark ? "dark" : "light");
 }
 window.toggleTheme = toggleTheme;
-
-// ===== دکمه بازگشت به بالا =====
-window.addEventListener("scroll", () => {
-  const btn = document.querySelector(".back-to-top");
-  if (window.scrollY > 400) btn.classList.add("show");
-  else btn.classList.remove("show");
-});
 
 // ===== اسلایدر =====
 let slideIndex = 0;
@@ -554,6 +558,118 @@ function goToSlide(idx) {
   slideIndex = idx;
 }
 window.goToSlide = goToSlide;
+
+// ===== رد کردن اسلایدر =====
+window.skipSlider = function() {
+  const slider = document.getElementById("heroSlider");
+  if (slider) {
+    slider.style.display = "none";
+    localStorage.setItem("shiraznuts_skipped_slider", "true");
+  }
+};
+function checkSliderSkipped() {
+  if (localStorage.getItem("shiraznuts_skipped_slider") === "true") {
+    const slider = document.getElementById("heroSlider");
+    if (slider) slider.style.display = "none";
+  }
+}
+
+// ===== ساخت اسلایدر از دسته‌بندی‌ها و تخفیف‌ها =====
+function buildSlider() {
+  const slider = document.getElementById("heroSlider");
+  if (!slider) return;
+  
+  // حذف اسلایدهای قبلی (به جز دکمه رد کردن و نقطه‌ها)
+  const oldSlides = slider.querySelectorAll(".slide");
+  oldSlides.forEach(s => s.remove());
+  
+  const slidesData = [];
+  
+  // اضافه کردن دسته‌بندی‌ها
+  allCategories.filter(c => c.active !== false && c.image).forEach(cat => {
+    slidesData.push({
+      image: cat.image,
+      title: `أفضل <span class="gold">${cat.name}</span>`,
+      desc: `جودة عالية من أفضل المكسرات الإيرانية`,
+      btnText: "تسوق الآن",
+      btnAction: () => openCategory(cat.id)
+    });
+  });
+  
+  // اضافه کردن تخفیف‌های فعال
+  allOffers.filter(o => o.active).forEach(offer => {
+    slidesData.push({
+      image: offer.image || "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800&h=400&fit=crop&auto=format",
+      title: `🎉 ${offer.title}`,
+      desc: offer.description || `خصم ${offer.discountPercent}% على جميع المنتجات`,
+      btnText: "استفد من العرض",
+      btnAction: () => document.getElementById('cats-grid').scrollIntoView({behavior:'smooth'})
+    });
+  });
+  
+  // اضافه کردن محصولات ویژه
+  allProducts.filter(p => p.featured && p.active !== false).slice(0, 3).forEach(p => {
+    const img = (p.images && p.images[0]) || "";
+    slidesData.push({
+      image: img,
+      title: `⭐ ${p.name}`,
+      desc: p.description || "منتج مميز بجودة عالية",
+      btnText: "اطلب الآن",
+      btnAction: () => openProduct(p.id)
+    });
+  });
+  
+  // اگر اسلایدی نبود، از تصاویر پیش‌فرض استفاده کن
+  if (slidesData.length === 0) {
+    slidesData.push({
+      image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800&h=400&fit=crop&auto=format",
+      title: 'أرقى <span class="gold">المكسرات</span> الإيرانية',
+      desc: "جودة لا تضاهى، طعم الأصالة، توصيل سريع",
+      btnText: "تسوق الآن",
+      btnAction: () => document.getElementById('cats-grid').scrollIntoView({behavior:'smooth'})
+    });
+  }
+  
+  // ساخت اسلایدها
+  slidesData.forEach((data, index) => {
+    const slide = document.createElement("div");
+    slide.className = `slide${index === 0 ? ' active' : ''}`;
+    slide.style.backgroundImage = `url('${data.image}')`;
+    slide.innerHTML = `
+      <div class="slide-content">
+        <h2>${data.title}</h2>
+        <p>${data.desc}</p>
+        <button class="btn-hero">${data.btnText}</button>
+      </div>
+    `;
+    const btn = slide.querySelector(".btn-hero");
+    btn.onclick = data.btnAction;
+    // کلیک روی خود اسلاید هم همان کار را می‌کند
+    slide.onclick = data.btnAction;
+    slider.appendChild(slide);
+  });
+  
+  // به‌روزرسانی نقطه‌ها
+  const dots = document.getElementById("sliderDots");
+  if (dots) {
+    dots.innerHTML = "";
+    slidesData.forEach((_, i) => {
+      const dot = document.createElement("span");
+      dot.className = i === 0 ? "active" : "";
+      dot.onclick = () => goToSlide(i);
+      dots.appendChild(dot);
+    });
+  }
+  
+  // اگر اسلاید وجود دارد، اسلایدر را نشان بده
+  if (slidesData.length > 0) {
+    slider.style.display = "block";
+    slideIndex = 0;
+    initSlider();
+  } else {
+    slider.style.display = "none";
+  }
+}
 
 // ===== تایمر تخفیف =====
 async function loadOfferTimer() {
@@ -633,7 +749,7 @@ function showToast(message, icon = "✅") {
 window.shareProduct = function(platform) {
   const name = document.getElementById("pd-name");
   const url = window.location.href;
-  const text = `🛒 ${name ? name.innerText : "منتج"} - Shiraz Nuts`;
+  const text = `🛒 ${name ? name.innerText : "منتج"} - ShirazNuts`;
   let shareUrl = "";
   if (platform === "whatsapp") shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
   else if (platform === "telegram") shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
@@ -697,13 +813,18 @@ function updateUserUI() {
     document.getElementById("newsletterStatus").innerText = user.newsletter ? "✅" : "❌";
     document.getElementById("editName").value = user.name || "";
     document.getElementById("editPhone").value = user.phone || "";
-    document.getElementById("editEmail").value = user.email || "";
+    // مخفی کردن پیام پیشنهاد ثبت‌نام در سبد
+    const guestMsg = document.getElementById("guestDiscountMsg");
+    if (guestMsg) guestMsg.style.display = "none";
   } else {
     document.getElementById("userName").innerText = "زائر عزيز";
     document.getElementById("userPhone").innerText = "تسجيل الدخول للاستفادة من العروض";
     document.getElementById("loginMenuItem").style.display = "flex";
     document.getElementById("logoutMenuItem").style.display = "none";
     document.getElementById("profileBadge").style.display = "flex";
+    // نمایش پیام پیشنهاد ثبت‌نام در سبد
+    const guestMsg = document.getElementById("guestDiscountMsg");
+    if (guestMsg) guestMsg.style.display = "block";
   }
 }
 
@@ -723,69 +844,44 @@ function fillUserInfoInCart() {
   }
 }
 
-// ===== ورود =====
+// ===== ورود ساده (بدون کد) =====
 window.showLoginModal = function() {
   document.getElementById("loginModal").classList.add("active");
-  document.getElementById("sendCodeBtn").style.display = "block";
-  document.getElementById("verifyRow").style.display = "none";
   document.getElementById("loginStatus").innerText = "";
-  document.getElementById("verifyCode").value = "";
 };
 window.closeLoginModal = function() {
   document.getElementById("loginModal").classList.remove("active");
-  document.getElementById("loginStatus").innerText = "";
-  document.getElementById("verifyCode").value = "";
-  pendingPhone = "";
-  pendingName = "";
-  verificationCode = "";
 };
 
-window.sendVerificationCode = async function() {
-  const phone = document.getElementById("loginPhone");
-  const name = document.getElementById("loginName");
+window.loginUser = async function() {
+  const phone = document.getElementById("loginPhone").value.trim();
+  const name = document.getElementById("loginName").value.trim();
   const status = document.getElementById("loginStatus");
-  if (!phone || !status) return;
-  const p = phone.value.trim();
-  const n = name ? name.value.trim() : "";
-  if (!p || p.length < 7) { status.innerText = "الرجاء إدخال رقم هاتف صحيح"; return; }
-  if (!n) { status.innerText = "الرجاء إدخال الاسم"; return; }
-  pendingPhone = p;
-  pendingName = n;
-  verificationCode = String(Math.floor(100000 + Math.random() * 900000));
-  const msg = `🔐 كود التأكيد الخاص بك لـ Shiraz Nuts:\n\n${verificationCode}\n\nأدخل الكود في الموقع لإكمال التسجيل.`;
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
-  document.getElementById("sendCodeBtn").style.display = "none";
-  document.getElementById("verifyRow").style.display = "flex";
-  status.innerText = "✅ تم إرسال الكود عبر واتساب. انتظر قليلاً ثم أدخل الكود.";
-  status.style.color = "#4CA771";
-};
-
-window.verifyCode = async function() {
-  const code = document.getElementById("verifyCode");
-  const status = document.getElementById("loginStatus");
-  if (!code || !status) return;
-  const c = code.value.trim();
-  if (!c) { status.innerText = "الرجاء إدخال الكود"; status.style.color = "#a33"; return; }
-  if (c !== verificationCode) { status.innerText = "❌ كود غير صحيح. حاول مرة أخرى."; status.style.color = "#a33"; return; }
+  
+  if (!phone || phone.length < 7) { status.innerText = "الرجاء إدخال رقم هاتف صحيح"; return; }
+  if (!name) { status.innerText = "الرجاء إدخال الاسم"; return; }
+  
   try {
-    const q = query(collection(db, "users"), where("phone", "==", pendingPhone));
+    const q = query(collection(db, "users"), where("phone", "==", phone));
     const snapshot = await getDocs(q);
     let userData;
     if (snapshot.empty) {
-      userData = { name: pendingName, phone: pendingPhone, email: "", verified: true, firstPurchaseDiscount: true, newsletter: false, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString() };
+      userData = { name, phone, email: "", firstPurchaseDiscount: true, newsletter: false, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString() };
       await addDoc(collection(db, "users"), userData);
     } else {
       userData = snapshot.docs[0].data();
-      await updateDoc(doc(db, "users", snapshot.docs[0].id), { lastLogin: new Date().toISOString(), verified: true });
-      if (pendingName && !userData.name) { await updateDoc(doc(db, "users", snapshot.docs[0].id), { name: pendingName }); userData.name = pendingName; }
+      await updateDoc(doc(db, "users", snapshot.docs[0].id), { lastLogin: new Date().toISOString() });
+      if (name && !userData.name) { await updateDoc(doc(db, "users", snapshot.docs[0].id), { name }); userData.name = name; }
     }
     currentUser = userData;
     localStorage.setItem("shiraznuts_user", JSON.stringify(userData));
     closeLoginModal();
     updateUserUI();
     showToast("مرحباً بك " + userData.name, "👋");
-    if (userData.firstPurchaseDiscount && firstPurchaseSettings && firstPurchaseSettings.active) showToast(`🎁 لديك خصم ${firstPurchaseSettings.discountPercent}% على أول طلب!`, "🎉");
-  } catch (err) { status.innerText = "خطأ: " + err.message; status.style.color = "#a33"; }
+    if (userData.firstPurchaseDiscount && firstPurchaseSettings && firstPurchaseSettings.active) {
+      showToast(`🎁 لديك خصم ${firstPurchaseSettings.discountPercent}% على أول طلب!`, "🎉");
+    }
+  } catch (err) { status.innerText = "خطأ: " + err.message; }
 };
 
 window.logoutUser = function() {
@@ -810,7 +906,6 @@ async function loadOrdersList() {
   const container = document.getElementById("ordersList");
   if (!container) return;
   container.innerHTML = "جاري التحميل...";
-  if (!currentUser) return;
   try {
     const q = query(collection(db, "orders"), where("phone", "==", currentUser.phone), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
@@ -821,7 +916,7 @@ async function loadOrdersList() {
       const itemsText = (order.items || []).map(i => `${i.name} (${i.variant})`).join("، ");
       const div = document.createElement("div");
       div.className = "cart-item";
-      div.innerHTML = `<div><div style="font-weight:bold;">📅 ${new Date(order.createdAt).toLocaleDateString("ar")}</div><div style="font-size:13px;color:#6b6154;">${itemsText}</div><div style="color:var(--gold);font-weight:bold;">${order.total} ريال</div><div style="font-size:12px;color:#8a7f6f;">الحالة: ${getOrderStatus(order.status)}</div>${order.firstPurchaseDiscount ? '<div style="font-size:11px;color:#4CA771;">🎁 تخفیف اولین خرید</div>' : ''}</div>`;
+      div.innerHTML = `<div><div style="font-weight:bold;">📅 ${new Date(order.createdAt).toLocaleDateString("ar")}</div><div style="font-size:13px;color:#6b6154;">${itemsText}</div><div style="color:var(--gold);font-weight:bold;">${order.total} ريال</div><div style="font-size:12px;color:#8a7f6f;">الحالة: ${getOrderStatus(order.status)}</div></div>`;
       container.appendChild(div);
     });
   } catch (err) { container.innerHTML = "خطأ في تحميل الطلبات"; }
@@ -841,18 +936,14 @@ window.closeProfileModal = function() { document.getElementById("profileModal").
 
 window.saveProfile = async function() {
   if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
-  const name = document.getElementById("editName");
-  const email = document.getElementById("editEmail");
-  if (!name) return;
-  const n = name.value.trim();
-  const e = email ? email.value.trim() : "";
-  if (!n) { alert("الرجاء إدخال الاسم"); return; }
+  const name = document.getElementById("editName").value.trim();
+  if (!name) { alert("الرجاء إدخال الاسم"); return; }
   try {
     const q = query(collection(db, "users"), where("phone", "==", currentUser.phone));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      await updateDoc(doc(db, "users", snapshot.docs[0].id), { name: n, email: e });
-      currentUser.name = n; currentUser.email = e;
+      await updateDoc(doc(db, "users", snapshot.docs[0].id), { name });
+      currentUser.name = name;
       localStorage.setItem("shiraznuts_user", JSON.stringify(currentUser));
       updateUserUI();
       alert("✅ تم حفظ التغييرات");
@@ -914,8 +1005,8 @@ async function loadData() {
     renderSidebarCategories();
     renderPremiumProducts();
     renderNewProducts();
+    buildSlider(); // اسلایدر با عکس‌های دسته‌بندی‌ها
     updateUserUI();
-    initSlider();
     loadOfferTimer();
     loadTheme();
     checkSliderSkipped();
@@ -965,9 +1056,11 @@ function renderNewProducts() {
   const container = document.getElementById("newScroll");
   if (!container) return;
   container.innerHTML = "";
-  const news = allProducts.filter(p => p.active !== false && p.new === true);
+  // ۱۰ محصول آخر بر اساس تاریخ ایجاد
+  const sorted = [...allProducts].filter(p => p.active !== false).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const news = sorted.slice(0, 10);
   if (news.length === 0) { const sec = document.getElementById("newSection"); if (sec) sec.style.display = "none"; return; }
-  news.slice(0, 8).forEach(p => {
+  news.forEach(p => {
     const img = (p.images && p.images[0]) || "";
     const originalPrice = cheapestModelPrice(p).price;
     const priceInfo = getProductPriceWithDiscount(p, originalPrice);
@@ -989,7 +1082,7 @@ function renderCategoryGrid() {
   grid.innerHTML = "";
   allCategories.filter(c => c.active !== false && !c.parentId).forEach((cat, idx) => {
     const color = CAT_COLORS[idx % CAT_COLORS.length];
-    const englishName = CAT_ENGLISH[cat.id] || "";
+    const englishName = CAT_ENGLISH[cat.id] || cat.nameEn || "";
     const card = document.createElement("div");
     card.className = "cat-card";
     card.style.background = color;
@@ -1093,7 +1186,8 @@ function renderProductsGrid() {
     card.className = "product-card";
     card.onclick = () => openProduct(p.id);
     const priceText = priceInfo.hasDiscount ? `<span style="text-decoration:line-through;color:#b0a58f;font-size:12px;">${originalPrice} ريال</span> <span style="color:#a33;font-weight:bold;">${priceInfo.price} ريال</span>` : `${priceInfo.price} ريال`;
-    card.innerHTML = `<div class="card-img-wrap">${p.featured ? '<span class="badge-featured">⭐ مميز</span>' : ""}${p.new ? '<span class="badge-new">جديد</span>' : ""}${priceInfo.hasDiscount ? `<span class="badge-discount">-${priceInfo.discount}%</span>` : ""}<div class="img-inner"><img src="${img}" loading="lazy" alt="${p.name}"></div></div><div class="info"><div class="name">${p.name}</div><div class="price-row"><div class="price">${priceText}</div></div></div>`;
+    const nameEn = p.nameEn ? `<span class="name-en-small">${p.nameEn}</span>` : "";
+    card.innerHTML = `<div class="card-img-wrap">${p.featured ? '<span class="badge-featured">⭐ مميز</span>' : ""}${p.new ? '<span class="badge-new">جديد</span>' : ""}${priceInfo.hasDiscount ? `<span class="badge-discount">-${priceInfo.discount}%</span>` : ""}<div class="img-inner"><img src="${img}" loading="lazy" alt="${p.name}"></div></div><div class="info"><div class="name">${p.name}</div>${nameEn}<div class="price-row"><div class="price">${priceText}</div></div></div>`;
     grid.appendChild(card);
   });
 }
@@ -1172,9 +1266,19 @@ function renderModelOptions() {
     const optionsEl = document.getElementById("pd-weight-options");
     if (!optionsEl) return;
     optionsEl.innerHTML = "";
+    const isSaffron = p.categoryId === "saffron";
     (model.presetWeights || []).forEach(w => {
       const btn = document.createElement("button");
-      btn.innerText = w >= 1000 ? (w/1000) + " كجم" : w + " جم";
+      // زعفران: نمایش بر حسب گرم، بقیه: کیلو یا گرم
+      let label;
+      if (isSaffron) {
+        label = w + " جم";
+      } else if (w >= 1000) {
+        label = (w/1000) + " كجم";
+      } else {
+        label = w + " جم";
+      }
+      btn.innerText = label;
       btn.onclick = () => {
         currentWeight = w;
         document.querySelectorAll("#pd-weight-options button").forEach(b => b.classList.remove("active"));
@@ -1395,14 +1499,26 @@ window.sendWhatsAppOrder = async function() {
 };
 
 // ===== توابع placeholder =====
-window.showFeatured = function() { alert("قريباً سيتم عرض الأكثر مبيعاً"); };
-window.showNew = function() { alert("قريباً سيتم عرض المنتجات الجديدة"); };
+window.showFeatured = function() { 
+  document.getElementById('premiumSection').scrollIntoView({behavior:'smooth'});
+};
+window.showNew = function() { 
+  document.getElementById('newSection').scrollIntoView({behavior:'smooth'});
+};
 window.showGifts = function() { alert("قريباً سيتم عرض باقات الهدايا"); };
-window.openPage = function(page) { alert("صفحة " + page + " قريباً"); };
+window.openPage = function(page) { 
+  const pages = {
+    'about': 'عن المتجر: نقدم لكم أرقى المكسرات الإيرانية بجودة استثنائية وأسعار تنافسية. نختار لكم أفضل المنتجات من أجود المزارع الإيرانية، ونوصلها لكم طازجة وسريعة. شيراز ناتس .. طعم الأصالة في كل حبة.',
+    'contact': 'اتصل بنا: يمكنكم التواصل معنا عبر واتساب على الرقم 96898779009 أو عبر البريد الإلكتروني info@shiraznuts.com',
+    'shipping': 'سياسة الشحن: نوصل طلباتكم خلال 24 ساعة في جميع أنحاء السلطنة. التوصيل مجاني للطلبات التي تزيد عن 20 ريال.',
+    'privacy': 'سياسة الخصوصية: جميع البيانات الشخصية محفوظة ولا تستخدم إلا لأغراض الطلب والتواصل معكم.'
+  };
+  alert(pages[page] || "الصفحة قيد الإعداد");
+};
 
 // ===== شروع =====
 renderCartBar();
 loadData();
 </script>
 </body>
-</html>
+ </html>
