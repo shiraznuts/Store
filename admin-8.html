@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پنل مدیریت | ShirazNuts</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Tahoma,Arial,sans-serif;background:#0f0f10;color:#eee;margin:0;padding:0}
+  #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  #login-screen h1{color:#d4af37;margin-bottom:30px}
+  input,select,textarea{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #333;background:#1a1a1c;color:#fff;font-size:15px}
+  button{padding:12px 20px;border:none;border-radius:8px;background:#d4af37;color:#000;font-weight:bold;font-size:15px;cursor:pointer;margin:6px 4px 6px 0}
+  button.secondary{background:#333;color:#eee}
+  button.danger{background:#a33;color:#fff}
+  button.small{padding:6px 12px;font-size:13px}
+  button.success{background:#2e7d32;color:#fff}
+  .login-box{width:100%;max-width:340px}
+  #admin-panel{display:none;padding:12px;padding-bottom:60px}
+  header.top{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid #333;margin-bottom:10px}
+  nav.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;flex-wrap:wrap}
+  nav.tabs button{background:#1a1a1c;color:#ccc;white-space:nowrap}
+  nav.tabs button.active{background:#d4af37;color:#000}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .card{background:#1a1a1c;border:1px solid #2a2a2c;border-radius:12px;padding:14px;margin-bottom:12px}
+  .card h3{margin:0 0 8px 0;color:#d4af37}
+  .thumb{width:60px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .between{justify-content:space-between}
+  label{font-size:13px;color:#aaa;display:block;margin-top:8px}
+  .status-msg{padding:10px;border-radius:8px;margin:10px 0;font-size:14px}
+  .status-ok{background:#14331e;color:#7fd99a}
+  .status-err{background:#331414;color:#ff9a9a}
+  .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#333;margin-left:6px}
+  .badge.on{background:#14331e;color:#7fd99a}
+  .badge.off{background:#331414;color:#ff9a9a}
+  .toggle-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .model-box{border:1px solid #333;border-radius:10px;padding:10px;margin-top:10px;background:#141416}
+  .saletype-switch{display:flex;gap:8px;margin-top:8px}
+  .saletype-switch button{flex:1;background:#1a1a1c;color:#ccc}
+  .saletype-switch button.active{background:#d4af37;color:#000}
+  .image-gallery{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}
+  .image-gallery .image-item{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:2px solid #333}
+  .image-gallery .image-item img{width:100%;height:100%;object-fit:cover}
+  .image-gallery .image-item .remove-img{position:absolute;top:-6px;right:-6px;background:#a33;color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .2s}
+  .image-gallery .image-item .remove-img:hover{transform:scale(1.15);background:#c0392b}
+  .image-preview{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+  .image-preview img{width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #333}
+  .offer-card,.coupon-card{background:#141416;border:1px solid #2a2a2c;border-radius:10px;padding:12px;margin-bottom:8px}
+  .offer-card .offer-title,.coupon-card .coupon-code{font-size:16px;font-weight:bold;color:#d4af37}
+  .offer-card .offer-dates,.coupon-card .coupon-dates{font-size:12px;color:#888}
+  .offer-card .offer-discount,.coupon-card .coupon-discount{font-size:14px;color:#7fd99a}
+  .status-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:bold}
+  .status-badge.active{background:#14331e;color:#7fd99a}
+  .status-badge.inactive{background:#331414;color:#ff9a9a}
+  .status-badge.expired{background:#332211;color:#e0a040}
+  .fp-setting-row{display:flex;gap:12px;flex-wrap:wrap}
+  .fp-setting-row>div{flex:1;min-width:120px}
+  .subscriber-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #2a2a2c}
+  .subscriber-item .phone{color:#7fd99a;font-weight:bold}
+  .subscriber-item .date{font-size:12px;color:#888}
+  .settings-textarea{width:100%;padding:12px;border-radius:8px;border:1px solid #333;background:#1a1a1c;color:#fff;font-size:14px;min-height:100px;font-family:Tahoma,Arial,sans-serif;resize:vertical}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <h1>ShirazNuts</h1>
+  <div class="login-box">
+    <label>ایمیل</label>
+    <input type="email" id="login-email" placeholder="ایمیل مدیر">
+    <label>رمز عبور</label>
+    <input type="password" id="login-pass" placeholder="رمز عبور">
+    <button onclick="doLogin()" style="width:100%">ورود</button>
+    <div id="login-msg"></div>
+  </div>
+</div>
+
+<div id="admin-panel">
+  <header class="top">
+    <strong id="admin-email"></strong>
+    <button class="secondary" onclick="doLogout()">خروج</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="products">🛒 محصولات</button>
+    <button class="tab-btn" data-tab="categories">📂 دسته‌بندی‌ها</button>
+    <button class="tab-btn" data-tab="banners">🖼️ بنرها</button>
+    <button class="tab-btn" data-tab="offers">📊 تخفیف‌ها</button>
+    <button class="tab-btn" data-tab="coupons">🎫 کدهای تخفیف</button>
+    <button class="tab-btn" data-tab="orders">📦 سفارش‌ها</button>
+    <button class="tab-btn" data-tab="subscribers">📧 مشترکین</button>
+    <button class="tab-btn" data-tab="settings">⚙️ تنظیمات</button>
+  </nav>
+
+  <!-- ===== تب محصولات ===== -->
+  <div class="tab-content active" id="tab-products">
+    <div class="card">
+      <h3 id="product-form-title">افزودن محصول جدید</h3>
+      <input type="hidden" id="product-id">
+      <label>نام محصول (عربی)</label>
+      <input type="text" id="p-name" placeholder="مثلاً پسته اکبری">
+      <label>نام محصول (انگلیسی)</label>
+      <input type="text" id="p-name-en" placeholder="مثلاً Akbari Pistachio">
+      <label>دسته‌بندی</label>
+      <select id="p-category"></select>
+      <label>توضیحات</label>
+      <textarea id="p-desc" rows="2"></textarea>
+
+      <label>عکس‌های اصلی محصول</label>
+      <input type="file" id="p-images-input" accept="image/*" multiple>
+      <div class="image-gallery" id="p-images-gallery"></div>
+
+      <label>نوع فروش</label>
+      <div class="saletype-switch">
+        <button type="button" id="st-weight" onclick="setSaleType('weight')">وزنی (کیلویی)</button>
+        <button type="button" id="st-unit" onclick="setSaleType('unit')">عددی (تعدادی)</button>
+      </div>
+
+      <label style="margin-top:16px">مدل‌های محصول</label>
+      <div id="models-container"></div>
+      <button class="secondary" type="button" onclick="addModelRow()">+ افزودن مدل</button>
+
+      <div class="toggle-row">
+        <input type="checkbox" id="p-featured"> <span>محصول ویژه</span>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="p-active" checked> <span>فعال (نمایش در سایت)</span>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="p-directdiscount-active" onchange="document.getElementById('p-directdiscount-box').style.display=this.checked?'block':'none'"> <span>تخفیف مستقیم روی این محصول (جدا از تخفیف‌های دسته‌بندی/گروهی)</span>
+      </div>
+      <div id="p-directdiscount-box" style="display:none">
+        <label>درصد تخفیف این محصول</label>
+        <input type="number" id="p-directdiscount-percent" min="1" max="100" placeholder="مثلاً 15">
+      </div>
+
+      <div style="margin-top:14px">
+        <button onclick="saveProduct()">ذخیره محصول</button>
+        <button class="secondary" onclick="resetProductForm()">پاک کردن فرم</button>
+      </div>
+      <div id="product-status"></div>
+    </div>
+
+    <div class="row between" style="margin:10px 0">
+      <h3 style="color:#d4af37;margin:0">لیست محصولات</h3>
+      <input type="text" id="search-box" placeholder="جستجوی محصول..." style="max-width:160px;margin:0" oninput="renderProductsList()">
+    </div>
+    <div id="products-list"></div>
+  </div>
+
+  <!-- ===== تب دسته‌بندی ===== -->
+  <div class="tab-content" id="tab-categories">
+    <div class="card">
+      <h3 id="cat-form-title">افزودن دسته‌بندی</h3>
+      <input type="hidden" id="category-id">
+      <label>نام دسته (عربی)</label>
+      <input type="text" id="c-name" placeholder="مثلاً مكسرات">
+      <label>نام دسته (انگلیسی)</label>
+      <input type="text" id="c-name-en" placeholder="مثلاً Nuts">
+      <label>ترتیب نمایش</label>
+      <input type="number" id="c-order" value="1">
+      <label>دسته والد (اگه این یه زیردسته‌ست)</label>
+      <select id="c-parent"><option value="">بدون والد (دسته اصلی)</option></select>
+      <label>عکس دسته‌بندی</label>
+      <input type="file" id="c-image-input" accept="image/*">
+      <div class="image-preview" id="c-image-preview"></div>
+      <div style="margin-top:10px">
+        <button onclick="saveCategory()">ذخیره دسته‌بندی</button>
+        <button class="secondary" onclick="resetCategoryForm()">پاک کردن فرم</button>
+      </div>
+      <div id="category-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست دسته‌بندی‌ها</h3>
+    <div id="categories-list"></div>
+  </div>
+
+  <!-- ===== تب بنرها ===== -->
+  <div class="tab-content" id="tab-banners">
+    <div class="card">
+      <h3 id="banner-form-title">افزودن بنر</h3>
+      <input type="hidden" id="banner-id">
+      <label>عنوان بنر (اختیاری)</label>
+      <input type="text" id="b-title" placeholder="مثلاً تخفیف ویژه زعفران">
+      <label>عکس بنر</label>
+      <input type="file" id="b-image-input" accept="image/*">
+      <div class="image-preview" id="b-image-preview"></div>
+      <label>لینک (اختیاری)</label>
+      <select id="b-link"><option value="">بدون لینک</option></select>
+      <label>ترتیب نمایش</label>
+      <input type="number" id="b-order" value="1">
+      <div style="margin-top:10px">
+        <button onclick="saveBanner()">ذخیره بنر</button>
+        <button class="secondary" onclick="resetBannerForm()">پاک کردن فرم</button>
+      </div>
+      <div id="banner-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست بنرها</h3>
+    <div id="banners-list"></div>
+  </div>
+
+  <!-- ===== تب تخفیف‌ها ===== -->
+  <div class="tab-content" id="tab-offers">
+    <!-- تخفیف ویژه -->
+    <div class="card">
+      <h3 id="offer-form-title">افزودن تخفیف ویژه</h3>
+      <input type="hidden" id="offer-id">
+      <label>عنوان تخفیف</label>
+      <input type="text" id="o-title" placeholder="مثلاً عروض خاصة">
+      <label>توضیحات</label>
+      <input type="text" id="o-desc" placeholder="مثلاً خصم ۳۰٪ على جميع المكسرات">
+      <label>درصد تخفیف</label>
+      <input type="number" id="o-discount" placeholder="مثلاً 30" min="1" max="100">
+      <label>روی چی اعمال بشه؟</label>
+      <div class="saletype-switch">
+        <button type="button" id="ot-all" onclick="setOfferTarget('all')">همه محصولات</button>
+        <button type="button" id="ot-category" onclick="setOfferTarget('category')">یک دسته‌بندی</button>
+        <button type="button" id="ot-products" onclick="setOfferTarget('products')">چند محصول انتخابی</button>
+      </div>
+      <div id="offer-target-category" style="display:none">
+        <label>دسته‌بندی</label>
+        <select id="o-category"><option value="">انتخاب کن</option></select>
+      </div>
+      <div id="offer-target-products" style="display:none">
+        <label>جستجو و انتخاب محصولات (هرکدوم رو جدا تیک بزن)</label>
+        <input type="text" id="o-products-search" placeholder="جستجوی محصول..." oninput="renderOfferProductsChecklist()">
+        <div id="offer-products-checklist" style="max-height:220px;overflow-y:auto;border:1px solid #333;border-radius:8px;padding:8px;margin-top:6px"></div>
+        <div style="font-size:12px;color:#888;margin-top:4px"><span id="offer-selected-count">0</span> محصول انتخاب شده</div>
+      </div>
+      <label>تاریخ شروع</label>
+      <input type="datetime-local" id="o-start">
+      <label>تاریخ پایان</label>
+      <input type="datetime-local" id="o-end">
+      <div class="toggle-row">
+        <input type="checkbox" id="o-active" checked> <span>فعال</span>
+      </div>
+      <div style="margin-top:10px">
+        <button onclick="saveOffer()">ذخیره تخفیف</button>
+        <button class="secondary" onclick="resetOfferForm()">پاک کردن فرم</button>
+      </div>
+      <div id="offer-status"></div>
+    </div>
+
+    <!-- تخفیف اولین خرید -->
+    <div class="card" style="border-color:#4CA771;">
+      <h3 style="color:#4CA771;">🎁 تخفیف اولین خرید</h3>
+      <div id="firstPurchaseSettings">
+        <div class="toggle-row">
+          <input type="checkbox" id="fp-active" checked> <span>فعال</span>
+        </div>
+        <div class="fp-setting-row">
+          <div>
+            <label>درصد تخفیف</label>
+            <input type="number" id="fp-discount" value="10" min="1" max="100">
+          </div>
+          <div>
+            <label>حداقل مبلغ سفارش (ريال)</label>
+            <input type="number" id="fp-minOrder" value="5" min="0">
+          </div>
+          <div>
+            <label>حداکثر مبلغ تخفیف (ريال - خالی = نامحدود)</label>
+            <input type="number" id="fp-maxDiscount" placeholder="مثلاً 3">
+          </div>
+          <div>
+            <label>حداکثر تعداد استفاده (خالی = نامحدود)</label>
+            <input type="number" id="fp-maxUses" placeholder="مثلاً 100">
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:13px;color:#888;">
+          تعداد استفاده‌شده: <span id="fp-usedCount">0</span>
+        </div>
+        <button onclick="saveFirstPurchaseSettings()" style="background:#4CA771;color:#fff;">ذخیره تنظیمات تخفیف اولین خرید</button>
+        <div id="fp-status"></div>
+      </div>
+    </div>
+
+    <h3 style="color:#d4af37">لیست تخفیف‌های ویژه</h3>
+    <div id="offers-list"></div>
+  </div>
+
+  <!-- ===== تب کدهای تخفیف ===== -->
+  <div class="tab-content" id="tab-coupons">
+    <div class="card">
+      <h3 id="coupon-form-title">افزودن کد تخفیف</h3>
+      <input type="hidden" id="coupon-id">
+      <label>کد تخفیف</label>
+      <input type="text" id="c-code" placeholder="مثلاً SHIRAZ10">
+      <label>درصد تخفیف</label>
+      <input type="number" id="c-discount" placeholder="مثلاً 10" min="1" max="100">
+      <label>حداکثر استفاده</label>
+      <input type="number" id="c-maxuses" placeholder="مثلاً 100 (خالی = نامحدود)">
+      <label>تاریخ انقضا</label>
+      <input type="datetime-local" id="c-expiry">
+      <div class="toggle-row">
+        <input type="checkbox" id="c-active" checked> <span>فعال</span>
+      </div>
+      <div style="margin-top:10px">
+        <button onclick="saveCoupon()">ذخیره کد</button>
+        <button class="secondary" onclick="resetCouponForm()">پاک کردن فرم</button>
+      </div>
+      <div id="coupon-status"></div>
+    </div>
+    <h3 style="color:#d4af37">لیست کدهای تخفیف</h3>
+    <div id="coupons-list"></div>
+  </div>
+
+  <!-- ===== تب سفارش‌ها ===== -->
+  <div class="tab-content" id="tab-orders">
+    <h3 style="color:#d4af37">سفارش‌های ثبت‌شده</h3>
+    <div id="orders-list"></div>
+  </div>
+
+  <!-- ===== تب مشترکین ===== -->
+  <div class="tab-content" id="tab-subscribers">
+    <h3 style="color:#d4af37">📧 مشترکین تنبیهات تخفیف</h3>
+    <p style="color:#888;font-size:13px;margin-bottom:12px;">کاربرانی که گزینه‌ی «تنبیهات التخفیضات» را در سایت فعال کرده‌اند. برای ارسال پیام تبلیغاتی درباره‌ی یک تخفیف، شماره‌ها را کپی کنید و در واتساپ خودتان دستی پیام بدهید (ارسال خودکار نیاز به WhatsApp Business API دارد).</p>
+    <div id="subscribers-list"></div>
+  </div>
+
+  <!-- ===== تب تنظیمات ===== -->
+  <div class="tab-content" id="tab-settings">
+    <div class="card">
+      <h3 style="color:#d4af37;">📖 متن "عن المتجر" (عربی)</h3>
+      <textarea class="settings-textarea" id="settings-about">نقدم لكم أرقى المكسرات الإيرانية بجودة استثنائية وأسعار تنافسية. نختار لكم أفضل المنتجات من أجود المزارع الإيرانية، ونوصلها لكم طازجة وسريعة. شيراز ناتس .. طعم الأصالة في كل حبة.</textarea>
+      <h3 style="color:#d4af37;margin-top:10px;">🇬🇧 English version (optional)</h3>
+      <textarea class="settings-textarea" id="settings-aboutEn" placeholder="Leave empty to keep showing Arabic on the English site"></textarea>
+      <button onclick="saveSettings('about')" style="background:#2e7d32;color:#fff;">ذخیره</button>
+      <div id="settings-about-status"></div>
+    </div>
+    <div class="card">
+      <h3 style="color:#d4af37;">📞 متن "اتصل بنا" (عربی)</h3>
+      <textarea class="settings-textarea" id="settings-contact">يمكنكم التواصل معنا عبر واتساب على الرقم 96898779009 أو عبر البريد الإلكتروني info@shiraznuts.com</textarea>
+      <h3 style="color:#d4af37;margin-top:10px;">🇬🇧 English version (optional)</h3>
+      <textarea class="settings-textarea" id="settings-contactEn" placeholder="Leave empty to keep showing Arabic on the English site"></textarea>
+      <button onclick="saveSettings('contact')" style="background:#2e7d32;color:#fff;">ذخیره</button>
+      <div id="settings-contact-status"></div>
+    </div>
+    <div class="card">
+      <h3 style="color:#d4af37;">📦 متن "سياسة الشحن" (عربی)</h3>
+      <textarea class="settings-textarea" id="settings-shipping">نوصل طلباتكم خلال 24 ساعة في جميع أنحاء السلطنة. التوصيل مجاني للطلبات التي تزيد عن 20 ريال.</textarea>
+      <h3 style="color:#d4af37;margin-top:10px;">🇬🇧 English version (optional)</h3>
+      <textarea class="settings-textarea" id="settings-shippingEn" placeholder="Leave empty to keep showing Arabic on the English site"></textarea>
+      <button onclick="saveSettings('shipping')" style="background:#2e7d32;color:#fff;">ذخیره</button>
+      <div id="settings-shipping-status"></div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs,
+  deleteDoc, updateDoc, onSnapshot, query, orderBy, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyApm-LtSjV-jckZILggicF83Cd0fO-77Pw",
+  authDomain: "shiraznuts-92e20.firebaseapp.com",
+  projectId: "shiraznuts-92e20",
+  storageBucket: "shiraznuts-92e20.firebasestorage.app",
+  messagingSenderId: "236719692703",
+  appId: "1:236719692703:web:2b7ed97a0a80aa1a903baa"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const CLOUD_NAME = "ygtxs7im";
+const UPLOAD_PRESET = "Shiraznuts_products1";
+let allCategoriesCache = [];
+let firstPurchaseSettings = null;
+
+// ===== ورود/خروج =====
+window.doLogin = async function() {
+  const email = document.getElementById("login-email").value.trim();
+  const pass = document.getElementById("login-pass").value;
+  const msg = document.getElementById("login-msg");
+  msg.innerHTML = "";
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch (err) { msg.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+window.doLogout = async function() { await signOut(auth); };
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const adminDoc = await getDoc(doc(db, "admins", user.uid));
+    if (adminDoc.exists()) {
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+      document.getElementById("admin-email").innerText = user.email;
+      loadCategories();
+      loadProducts();
+      loadBanners();
+      loadOrders();
+      loadOffers();
+      loadCoupons();
+      loadFirstPurchaseSettings();
+      loadSubscribers();
+      loadSettings();
+      setOfferTarget("all");
+    } else {
+      alert("این حساب دسترسی مدیریت ندارد.");
+      await signOut(auth);
+    }
+  } else {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("admin-panel").style.display = "none";
+  }
+});
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ===== آپلود عکس =====
+async function uploadImageToCloudinary(file) {
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  const res = await fetch(url, { method: "POST", body: formData });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error("آپلود عکس ناموفق بود");
+  return data.secure_url;
+}
+
+// ============================================================
+// ===== دسته‌بندی‌ها =====
+// ============================================================
+let categoryImage = "";
+document.getElementById("c-image-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById("c-image-preview");
+  preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
+  try { categoryImage = await uploadImageToCloudinary(file); }
+  catch (err) { alert("خطا در آپلود عکس: " + err.message); }
+});
+
+window.resetCategoryForm = function() {
+  document.getElementById("category-id").value = "";
+  document.getElementById("c-name").value = "";
+  document.getElementById("c-name-en").value = "";
+  document.getElementById("c-order").value = "1";
+  document.getElementById("c-parent").value = "";
+  document.getElementById("c-image-preview").innerHTML = "";
+  categoryImage = "";
+  document.getElementById("cat-form-title").innerText = "افزودن دسته‌بندی";
+};
+
+window.saveCategory = async function() {
+  const id = document.getElementById("category-id").value;
+  const name = document.getElementById("c-name").value.trim();
+  const nameEn = document.getElementById("c-name-en").value.trim();
+  const order = parseInt(document.getElementById("c-order").value) || 1;
+  const parentId = document.getElementById("c-parent").value;
+  const statusEl = document.getElementById("category-status");
+  if (!name) { statusEl.innerHTML = `<div class="status-msg status-err">نام دسته را وارد کن</div>`; return; }
+  const data = { name, nameEn, order, active: true, image: categoryImage, parentId };
+  try {
+    if (id) { await updateDoc(doc(db, "categories", id), data); }
+    else { await addDoc(collection(db, "categories"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">ذخیره شد ✅</div>`;
+    resetCategoryForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editCategory = async function(id) {
+  const snap = await getDoc(doc(db, "categories", id));
+  if (!snap.exists()) return;
+  const c = snap.data();
+  document.getElementById("category-id").value = id;
+  document.getElementById("c-name").value = c.name || "";
+  document.getElementById("c-name-en").value = c.nameEn || "";
+  document.getElementById("c-order").value = c.order || 1;
+  document.getElementById("c-parent").value = c.parentId || "";
+  categoryImage = c.image || "";
+  document.getElementById("c-image-preview").innerHTML = categoryImage ? `<img src="${categoryImage}">` : "";
+  document.getElementById("cat-form-title").innerText = "ویرایش دسته‌بندی";
+  window.scrollTo(0,0);
+};
+
+window.deleteCategory = async function(id) {
+  if (!confirm("حذف این دسته‌بندی؟")) return;
+  await deleteDoc(doc(db, "categories", id));
+};
+
+function loadCategories() {
+  const q = query(collection(db, "categories"), orderBy("order"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("categories-list");
+    const selectEl = document.getElementById("p-category");
+    const parentEl = document.getElementById("c-parent");
+    const offerCatEl = document.getElementById("o-category");
+    listEl.innerHTML = "";
+    selectEl.innerHTML = "";
+    if (parentEl) parentEl.innerHTML = '<option value="">بدون والد (دسته اصلی)</option>';
+    if (offerCatEl) offerCatEl.innerHTML = '<option value="">انتخاب کن</option>';
+    allCategoriesCache = [];
+    snapshot.forEach(docSnap => {
+      const cat = docSnap.data();
+      allCategoriesCache.push({ id: docSnap.id, ...cat });
+      const card = document.createElement("div");
+      card.className = "card";
+      const img = cat.image ? `<img class="thumb" src="${cat.image}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1512,#2a2118);font-size:20px">${cat.icon || '📦'}</div>`;
+      const parentCat = cat.parentId ? allCategoriesCache.find(c => c.id === cat.parentId) : null;
+      const parentBadge = cat.parentId ? `<span class="badge">زیردسته‌ی: ${parentCat ? parentCat.name : cat.parentId}</span>` : "";
+      const enBadge = cat.nameEn ? `<span class="badge">${cat.nameEn}</span>` : "";
+      card.innerHTML = `
+        <div class="row between">
+          <div class="row">${img}<span>${cat.name} ${enBadge} <span class="badge">ترتیب: ${cat.order}</span> ${parentBadge}</span></div>
+        </div>
+        <div style="margin-top:8px">
+          <button class="secondary small" onclick="editCategory('${docSnap.id}')">ویرایش</button>
+          <button class="danger small" onclick="deleteCategory('${docSnap.id}')">حذف</button>
+        </div>
+      `;
+      listEl.appendChild(card);
+
+      const opt = document.createElement("option");
+      opt.value = docSnap.id;
+      opt.textContent = cat.name;
+      selectEl.appendChild(opt);
+      
+      if (offerCatEl) {
+        const optOffer = document.createElement("option");
+        optOffer.value = docSnap.id;
+        optOffer.textContent = cat.name;
+        offerCatEl.appendChild(optOffer);
+      }
+
+      if (parentEl && !cat.parentId) {
+        const optP = document.createElement("option");
+        optP.value = docSnap.id;
+        optP.textContent = cat.name;
+        parentEl.appendChild(optP);
+      }
+    });
+    refreshBannerLinkOptions();
+  });
+}
+
+function refreshBannerLinkOptions() {
+  const bLinkEl = document.getElementById("b-link");
+  if (!bLinkEl) return;
+  const current = bLinkEl.value;
+  bLinkEl.innerHTML = '<option value="">بدون لینک</option>';
+  if (allCategoriesCache.length) {
+    const g1 = document.createElement("optgroup");
+    g1.label = "دسته‌بندی‌ها";
+    allCategoriesCache.forEach(cat => {
+      const o = document.createElement("option");
+      o.value = cat.id;
+      o.textContent = cat.name;
+      g1.appendChild(o);
+    });
+    bLinkEl.appendChild(g1);
+  }
+  if (typeof allProductsCache !== "undefined" && allProductsCache.length) {
+    const g2 = document.createElement("optgroup");
+    g2.label = "محصولات";
+    allProductsCache.forEach(p => {
+      const o = document.createElement("option");
+      o.value = p.id;
+      o.textContent = p.name;
+      g2.appendChild(o);
+    });
+    bLinkEl.appendChild(g2);
+  }
+  bLinkEl.value = current;
+}
+
+// ============================================================
+// ===== بنرها =====
+// ============================================================
+let bannerImage = "";
+document.getElementById("b-image-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById("b-image-preview");
+  preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
+  try { bannerImage = await uploadImageToCloudinary(file); }
+  catch (err) { alert("خطا در آپلود عکس: " + err.message); }
+});
+
+window.resetBannerForm = function() {
+  document.getElementById("banner-id").value = "";
+  document.getElementById("b-title").value = "";
+  document.getElementById("b-order").value = "1";
+  document.getElementById("b-link").value = "";
+  document.getElementById("b-image-preview").innerHTML = "";
+  bannerImage = "";
+  document.getElementById("banner-form-title").innerText = "افزودن بنر";
+};
+
+window.saveBanner = async function() {
+  const id = document.getElementById("banner-id").value;
+  const title = document.getElementById("b-title").value.trim();
+  const order = parseInt(document.getElementById("b-order").value) || 1;
+  const link = document.getElementById("b-link").value;
+  const statusEl = document.getElementById("banner-status");
+  if (!bannerImage) { statusEl.innerHTML = `<div class="status-msg status-err">عکس بنر را آپلود کن</div>`; return; }
+  const data = { title, order, link, active: true, image: bannerImage };
+  try {
+    if (id) { await updateDoc(doc(db, "banners", id), data); }
+    else { await addDoc(collection(db, "banners"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">بنر ذخیره شد ✅</div>`;
+    resetBannerForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editBanner = async function(id) {
+  const snap = await getDoc(doc(db, "banners", id));
+  if (!snap.exists()) return;
+  const b = snap.data();
+  document.getElementById("banner-id").value = id;
+  document.getElementById("b-title").value = b.title || "";
+  document.getElementById("b-order").value = b.order || 1;
+  document.getElementById("b-link").value = b.link || "";
+  bannerImage = b.image || "";
+  document.getElementById("b-image-preview").innerHTML = bannerImage ? `<img src="${bannerImage}">` : "";
+  document.getElementById("banner-form-title").innerText = "ویرایش بنر";
+  window.scrollTo(0,0);
+};
+
+window.deleteBanner = async function(id) {
+  if (!confirm("حذف این بنر؟")) return;
+  await deleteDoc(doc(db, "banners", id));
+};
+
+function loadBanners() {
+  const q = query(collection(db, "banners"), orderBy("order"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("banners-list");
+    listEl.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const b = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="row"><img class="thumb" src="${b.image}"><span>${b.title || "(بدون عنوان)"} <span class="badge">ترتیب: ${b.order}</span></span></div>
+        <div style="margin-top:8px">
+          <button class="secondary small" onclick="editBanner('${docSnap.id}')">ویرایش</button>
+          <button class="danger small" onclick="deleteBanner('${docSnap.id}')">حذف</button>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+// ============================================================
+// ===== تخفیف‌ها =====
+// ============================================================
+let currentOfferTarget = "all";
+let selectedOfferProductIds = new Set();
+
+window.setOfferTarget = function(type) {
+  currentOfferTarget = type;
+  document.getElementById("ot-all").classList.toggle("active", type === "all");
+  document.getElementById("ot-category").classList.toggle("active", type === "category");
+  document.getElementById("ot-products").classList.toggle("active", type === "products");
+  document.getElementById("offer-target-category").style.display = type === "category" ? "block" : "none";
+  document.getElementById("offer-target-products").style.display = type === "products" ? "block" : "none";
+  if (type === "products") renderOfferProductsChecklist();
+};
+
+window.renderOfferProductsChecklist = function() {
+  const container = document.getElementById("offer-products-checklist");
+  const term = (document.getElementById("o-products-search").value || "").trim();
+  container.innerHTML = "";
+  const filtered = allProductsCache.filter(p => !term || (p.name || "").includes(term) || (p.nameEn || "").includes(term));
+  if (filtered.length === 0) { container.innerHTML = `<div style="color:#888;font-size:13px;padding:6px">محصولی پیدا نشد</div>`; }
+  filtered.forEach(p => {
+    const row = document.createElement("label");
+    row.style.cssText = "display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:13px;color:#ddd;cursor:pointer;border-bottom:1px solid #222";
+    row.innerHTML = `<input type="checkbox" value="${p.id}" ${selectedOfferProductIds.has(p.id) ? "checked" : ""} onchange="toggleOfferProduct('${p.id}', this.checked)"> ${p.name}${p.nameEn ? ` <span style="color:#888">(${p.nameEn})</span>` : ""}`;
+    container.appendChild(row);
+  });
+  document.getElementById("offer-selected-count").textContent = selectedOfferProductIds.size;
+};
+
+window.toggleOfferProduct = function(id, checked) {
+  if (checked) selectedOfferProductIds.add(id); else selectedOfferProductIds.delete(id);
+  document.getElementById("offer-selected-count").textContent = selectedOfferProductIds.size;
+};
+
+window.resetOfferForm = function() {
+  document.getElementById("offer-id").value = "";
+  document.getElementById("o-title").value = "";
+  document.getElementById("o-desc").value = "";
+  document.getElementById("o-discount").value = "";
+  document.getElementById("o-category").value = "";
+  document.getElementById("o-products-search").value = "";
+  document.getElementById("o-start").value = "";
+  document.getElementById("o-end").value = "";
+  document.getElementById("o-active").checked = true;
+  selectedOfferProductIds = new Set();
+  setOfferTarget("all");
+  document.getElementById("offer-form-title").innerText = "افزودن تخفیف ویژه";
+};
+
+window.saveOffer = async function() {
+  const id = document.getElementById("offer-id").value;
+  const title = document.getElementById("o-title").value.trim();
+  const description = document.getElementById("o-desc").value.trim();
+  const discountPercent = parseInt(document.getElementById("o-discount").value) || 0;
+  const startDate = document.getElementById("o-start").value;
+  const endDate = document.getElementById("o-end").value;
+  const active = document.getElementById("o-active").checked;
+  const statusEl = document.getElementById("offer-status");
+
+  if (!title) { statusEl.innerHTML = `<div class="status-msg status-err">عنوان تخفیف را وارد کن</div>`; return; }
+  if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
+  if (!startDate || !endDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ شروع و پایان را وارد کن</div>`; return; }
+
+  let categoryId = null, productIds = [];
+  if (currentOfferTarget === "category") {
+    categoryId = document.getElementById("o-category").value || null;
+    if (!categoryId) { statusEl.innerHTML = `<div class="status-msg status-err">یک دسته‌بندی انتخاب کن</div>`; return; }
+  } else if (currentOfferTarget === "products") {
+    productIds = Array.from(selectedOfferProductIds);
+    if (productIds.length === 0) { statusEl.innerHTML = `<div class="status-msg status-err">حداقل یک محصول انتخاب کن</div>`; return; }
+  }
+
+  const data = { title, description, discountPercent, categoryId, productIds, startDate, endDate, active, createdAt: new Date().toISOString() };
+  try {
+    if (id) { await updateDoc(doc(db, "offers", id), data); }
+    else { await addDoc(collection(db, "offers"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">تخفیف ذخیره شد ✅</div>`;
+    resetOfferForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editOffer = async function(id) {
+  const snap = await getDoc(doc(db, "offers", id));
+  if (!snap.exists()) return;
+  const o = snap.data();
+  document.getElementById("offer-id").value = id;
+  document.getElementById("o-title").value = o.title || "";
+  document.getElementById("o-desc").value = o.description || "";
+  document.getElementById("o-discount").value = o.discountPercent || "";
+  document.getElementById("o-start").value = o.startDate || "";
+  document.getElementById("o-end").value = o.endDate || "";
+  document.getElementById("o-active").checked = o.active !== false;
+  document.getElementById("offer-form-title").innerText = "ویرایش تخفیف";
+  if (o.productIds && o.productIds.length > 0) {
+    selectedOfferProductIds = new Set(o.productIds);
+    document.getElementById("o-category").value = "";
+    setOfferTarget("products");
+  } else if (o.categoryId) {
+    selectedOfferProductIds = new Set();
+    document.getElementById("o-category").value = o.categoryId;
+    setOfferTarget("category");
+  } else {
+    selectedOfferProductIds = new Set();
+    setOfferTarget("all");
+  }
+  window.scrollTo(0,0);
+};
+
+window.deleteOffer = async function(id) {
+  if (!confirm("حذف این تخفیف؟")) return;
+  await deleteDoc(doc(db, "offers", id));
+};
+
+function loadOffers() {
+  const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("offers-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هیچ تخفیفی ثبت نشده</div>`; return; }
+    snapshot.forEach(docSnap => {
+      const o = docSnap.data();
+      const now = new Date();
+      const end = new Date(o.endDate);
+      const isActive = o.active && now < end;
+      const statusClass = isActive ? 'active' : (now > end ? 'expired' : 'inactive');
+      const statusText = isActive ? 'فعال' : (now > end ? 'منقضی شده' : 'غیرفعال');
+      let targetText = 'همه محصولات';
+      if (o.productIds && o.productIds.length > 0) {
+        targetText = `${o.productIds.length} محصول انتخابی`;
+      } else if (o.categoryId) {
+        targetText = 'دسته: ' + (allCategoriesCache.find(c => c.id === o.categoryId)?.name || 'نامشخص');
+      }
+      const card = document.createElement("div");
+      card.className = "offer-card";
+      card.innerHTML = `
+        <div class="row between">
+          <div>
+            <div class="offer-title">${o.title}</div>
+            <div class="offer-dates">${o.description || ''}</div>
+            <div class="offer-discount">${o.discountPercent}% تخفیف</div>
+            <div class="offer-dates">اعمال روی: ${targetText}</div>
+            <div class="offer-dates">شروع: ${new Date(o.startDate).toLocaleDateString('fa')} | پایان: ${new Date(o.endDate).toLocaleDateString('fa')}</div>
+          </div>
+          <div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+            <div style="margin-top:8px">
+              <button class="secondary small" onclick="editOffer('${docSnap.id}')">ویرایش</button>
+              <button class="danger small" onclick="deleteOffer('${docSnap.id}')">حذف</button>
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+// ============================================================
+// ===== تخفیف اولین خرید =====
+// ============================================================
+async function loadFirstPurchaseSettings() {
+  try {
+    const docRef = doc(db, "settings", "firstPurchaseDiscount");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      firstPurchaseSettings = docSnap.data();
+    } else {
+      firstPurchaseSettings = { active: true, discountPercent: 10, minOrderAmount: 5, maxDiscountAmount: null, usedCount: 0, maxUses: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      await setDoc(docRef, firstPurchaseSettings);
+    }
+    document.getElementById("fp-active").checked = firstPurchaseSettings.active !== false;
+    document.getElementById("fp-discount").value = firstPurchaseSettings.discountPercent || 10;
+    document.getElementById("fp-minOrder").value = firstPurchaseSettings.minOrderAmount || 0;
+    document.getElementById("fp-maxDiscount").value = firstPurchaseSettings.maxDiscountAmount || "";
+    document.getElementById("fp-maxUses").value = firstPurchaseSettings.maxUses || "";
+    document.getElementById("fp-usedCount").textContent = firstPurchaseSettings.usedCount || 0;
+  } catch (err) { console.error("خطا در بارگذاری تنظیمات تخفیف اولین خرید:", err); }
+}
+
+window.saveFirstPurchaseSettings = async function() {
+  const statusEl = document.getElementById("fp-status");
+  try {
+    const data = {
+      active: document.getElementById("fp-active").checked,
+      discountPercent: parseInt(document.getElementById("fp-discount").value) || 10,
+      minOrderAmount: parseInt(document.getElementById("fp-minOrder").value) || 0,
+      maxDiscountAmount: parseInt(document.getElementById("fp-maxDiscount").value) || null,
+      maxUses: parseInt(document.getElementById("fp-maxUses").value) || null,
+      usedCount: firstPurchaseSettings?.usedCount || 0,
+      updatedAt: new Date().toISOString()
+    };
+    await updateDoc(doc(db, "settings", "firstPurchaseDiscount"), data);
+    firstPurchaseSettings = data;
+    statusEl.innerHTML = `<div class="status-msg status-ok">تنظیمات تخفیف اولین خرید ذخیره شد ✅</div>`;
+    setTimeout(() => statusEl.innerHTML = "", 3000);
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+// ============================================================
+// ===== کدهای تخفیف =====
+// ============================================================
+window.resetCouponForm = function() {
+  document.getElementById("coupon-id").value = "";
+  document.getElementById("c-code").value = "";
+  document.getElementById("c-discount").value = "";
+  document.getElementById("c-maxuses").value = "";
+  document.getElementById("c-expiry").value = "";
+  document.getElementById("c-active").checked = true;
+  document.getElementById("coupon-form-title").innerText = "افزودن کد تخفیف";
+};
+
+window.saveCoupon = async function() {
+  const id = document.getElementById("coupon-id").value;
+  const code = document.getElementById("c-code").value.trim().toUpperCase();
+  const discountPercent = parseInt(document.getElementById("c-discount").value) || 0;
+  const maxUses = parseInt(document.getElementById("c-maxuses").value) || null;
+  const expiryDate = document.getElementById("c-expiry").value;
+  const active = document.getElementById("c-active").checked;
+  const statusEl = document.getElementById("coupon-status");
+  
+  if (!code) { statusEl.innerHTML = `<div class="status-msg status-err">کد تخفیف را وارد کن</div>`; return; }
+  if (discountPercent < 1 || discountPercent > 100) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف باید بین 1 تا 100 باشد</div>`; return; }
+  if (!expiryDate) { statusEl.innerHTML = `<div class="status-msg status-err">تاریخ انقضا را وارد کن</div>`; return; }
+  
+  const data = { code, discountPercent, maxUses, usedCount: 0, expiryDate, active, createdAt: new Date().toISOString() };
+  try {
+    if (id) { await updateDoc(doc(db, "coupons", id), data); }
+    else { await addDoc(collection(db, "coupons"), data); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">کد تخفیف ذخیره شد ✅</div>`;
+    resetCouponForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editCoupon = async function(id) {
+  const snap = await getDoc(doc(db, "coupons", id));
+  if (!snap.exists()) return;
+  const c = snap.data();
+  document.getElementById("coupon-id").value = id;
+  document.getElementById("c-code").value = c.code || "";
+  document.getElementById("c-discount").value = c.discountPercent || "";
+  document.getElementById("c-maxuses").value = c.maxUses || "";
+  document.getElementById("c-expiry").value = c.expiryDate || "";
+  document.getElementById("c-active").checked = c.active !== false;
+  document.getElementById("coupon-form-title").innerText = "ویرایش کد تخفیف";
+  window.scrollTo(0,0);
+};
+
+window.deleteCoupon = async function(id) {
+  if (!confirm("حذف این کد تخفیف؟")) return;
+  await deleteDoc(doc(db, "coupons", id));
+};
+
+function loadCoupons() {
+  const q = query(collection(db, "coupons"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("coupons-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هیچ کد تخفیفی ثبت نشده</div>`; return; }
+    snapshot.forEach(docSnap => {
+      const c = docSnap.data();
+      const now = new Date();
+      const expiry = new Date(c.expiryDate);
+      const isActive = c.active && now < expiry;
+      const statusClass = isActive ? 'active' : (now > expiry ? 'expired' : 'inactive');
+      const statusText = isActive ? 'فعال' : (now > expiry ? 'منقضی شده' : 'غیرفعال');
+      const card = document.createElement("div");
+      card.className = "coupon-card";
+      card.innerHTML = `
+        <div class="row between">
+          <div>
+            <div class="coupon-code">🎫 ${c.code}</div>
+            <div class="coupon-discount">${c.discountPercent}% تخفیف</div>
+            <div class="coupon-dates">استفاده: ${c.usedCount || 0}${c.maxUses ? ' از ' + c.maxUses : ''}</div>
+            <div class="coupon-dates">انقضا: ${new Date(c.expiryDate).toLocaleDateString('fa')}</div>
+          </div>
+          <div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+            <div style="margin-top:8px">
+              <button class="secondary small" onclick="editCoupon('${docSnap.id}')">ویرایش</button>
+              <button class="danger small" onclick="deleteCoupon('${docSnap.id}')">حذف</button>
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+// ============================================================
+// ===== سفارش‌ها =====
+// ============================================================
+function loadOrders() {
+  const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("orders-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هنوز سفارشی ثبت نشده</div>`; return; }
+    snapshot.forEach(docSnap => {
+      const o = docSnap.data();
+      const itemsText = (o.items || []).map(i => `${i.name} - ${i.model} (${i.variant})`).join("<br>");
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div><strong>${o.customerName || "بدون نام"}</strong> — ${o.phone || ""}</div>
+        <div style="font-size:13px;color:#aaa;margin:6px 0">${itemsText}</div>
+        <div style="color:#d4af37;font-weight:bold">جمع کل: ${o.total} ريال</div>
+        ${o.couponApplied ? `<div style="font-size:12px;color:#7fd99a;">کد تخفیف اعمال شده</div>` : ''}
+        ${o.firstPurchaseDiscount ? `<div style="font-size:12px;color:#7fd99a;">تخفیف اولین خرید</div>` : ''}
+        <label>وضعیت سفارش</label>
+        <select onchange="updateOrderStatus('${docSnap.id}', this.value)">
+          <option value="pending" ${o.status==='pending'?'selected':''}>در انتظار</option>
+          <option value="confirmed" ${o.status==='confirmed'?'selected':''}>تأیید شده</option>
+          <option value="preparing" ${o.status==='preparing'?'selected':''}>در حال آماده‌سازی</option>
+          <option value="sent" ${o.status==='sent'?'selected':''}>ارسال شده</option>
+          <option value="completed" ${o.status==='completed'?'selected':''}>تکمیل شده</option>
+          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>لغو شده</option>
+        </select>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+}
+
+window.updateOrderStatus = async function(id, status) {
+  await updateDoc(doc(db, "orders", id), { status });
+};
+
+// ============================================================
+// ===== مشترکین خبرنامه =====
+// ============================================================
+function loadSubscribers() {
+  const q = query(collection(db, "users"), where("priceAlerts", "==", true));
+  onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById("subscribers-list");
+    listEl.innerHTML = "";
+    if (snapshot.empty) { listEl.innerHTML = `<div class="card">هیچ مشترکی وجود ندارد</div>`; return; }
+    let html = `<div class="card" style="max-height:400px;overflow-y:auto;">`;
+    snapshot.forEach(docSnap => {
+      const u = docSnap.data();
+      const phone = u.phone || '---';
+      const name = u.name || 'بدون نام';
+      const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fa') : '---';
+      html += `
+        <div class="subscriber-item">
+          <div>
+            <span class="phone">${phone}</span>
+            <span style="color:#ccc;margin-right:8px;">${name}</span>
+          </div>
+          <span class="date">${date}</span>
+        </div>
+      `;
+    });
+    html += `<div style="padding:12px;text-align:center;font-size:12px;color:#888;">${snapshot.size} مشترک</div></div>`;
+    listEl.innerHTML = html;
+  });
+}
+
+// ============================================================
+// ===== تنظیمات صفحات =====
+// ============================================================
+async function loadSettings() {
+  try {
+    // نکته: قبلاً این متن‌ها توی سه سند جدا (settings/about, settings/contact, settings/shipping)
+    // ذخیره می‌شدند، در حالی که سایت اصلی از سند settings/pages می‌خواند - یعنی ذخیره‌کردن از این
+    // تب هیچ اثری روی سایت نداشت! حالا هر دو منبع را می‌خوانیم تا متن‌های قبلی گم نشوند،
+    // و از این به بعد همه‌چیز در settings/pages ذخیره می‌شود (همان چیزی که سایت می‌خواند).
+    const pagesDoc = await getDoc(doc(db, "settings", "pages"));
+    const pagesData = pagesDoc.exists() ? pagesDoc.data() : {};
+    for (const key of ["about", "contact", "shipping"]) {
+      let val = pagesData[key];
+      if (!val) {
+        const legacyDoc = await getDoc(doc(db, "settings", key));
+        if (legacyDoc.exists()) val = legacyDoc.data().text || "";
+      }
+      document.getElementById(`settings-${key}`).value = val || "";
+      document.getElementById(`settings-${key}En`).value = pagesData[key + "En"] || "";
+    }
+  } catch (err) { console.error("خطا در بارگذاری تنظیمات:", err); }
+}
+
+window.saveSettings = async function(type) {
+  const statusEl = document.getElementById(`settings-${type}-status`);
+  const textarea = document.getElementById(`settings-${type}`);
+  const textareaEn = document.getElementById(`settings-${type}En`);
+  try {
+    await setDoc(doc(db, "settings", "pages"), { [type]: textarea.value, [type + "En"]: textareaEn.value, updatedAt: new Date().toISOString() }, { merge: true });
+    statusEl.innerHTML = `<div class="status-msg status-ok">متن ذخیره شد ✅</div>`;
+    setTimeout(() => statusEl.innerHTML = "", 3000);
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+// ============================================================
+// ===== محصولات =====
+// ============================================================
+let currentSaleType = "weight";
+let uploadedImages = [];
+let currentProductId = null;
+
+window.setSaleType = function(type) {
+  currentSaleType = type;
+  document.getElementById("st-weight").classList.toggle("active", type === "weight");
+  document.getElementById("st-unit").classList.toggle("active", type === "unit");
+  document.querySelectorAll(".model-box").forEach(box => renderModelFields(box));
+};
+
+function serializePresetWeights(presetWeights) {
+  return (presetWeights || []).map(w => {
+    if (w && typeof w === "object") return w.customPrice ? `${w.grams}:${w.customPrice}` : `${w.grams}`;
+    return `${w}`;
+  }).join(",");
+}
+
+function parsePresetWeightsInput(str) {
+  return str.split(",").map(s => s.trim()).filter(Boolean).map(entry => {
+    const [gramsStr, priceStr] = entry.split(":").map(s => s.trim());
+    const grams = parseInt(gramsStr);
+    if (!grams || grams <= 0) return null;
+    if (priceStr && parseFloat(priceStr) > 0) return { grams, customPrice: parseFloat(priceStr) };
+    return grams;
+  }).filter(w => w !== null);
+}
+
+let modelCount = 0;
+window.addModelRow = function(data = {}) {
+  modelCount++;
+  const id = "m" + modelCount;
+  const container = document.getElementById("models-container");
+  const box = document.createElement("div");
+  box.className = "model-box";
+  box.dataset.mid = id;
+  box.dataset.image = data.image || "";
+  box.innerHTML = `
+    <div class="row between">
+      <strong>مدل</strong>
+      <button type="button" class="danger small" onclick="this.closest('.model-box').remove()">حذف مدل</button>
+    </div>
+    <label>نام مدل</label>
+    <input type="text" class="m-name" placeholder="مثلاً استاندارد / شیری / ترک" value="${data.name || ''}">
+    <label>عکس مدل (اختیاری)</label>
+    <input type="file" class="m-image-input" accept="image/*">
+    <div class="image-gallery model-images" id="model-images-${id}">
+      ${data.image ? `<div class="image-item"><img src="${data.image}"><button class="remove-img" onclick="removeModelImage(this, '${id}')">✕</button></div>` : ''}
+    </div>
+    <div class="fields-weight">
+      <label>قیمت هر کیلو (ریال)</label>
+      <input type="number" class="m-priceperkg" value="${data.pricePerKg || ''}">
+      <label>وزن‌های پیشنهادی (گرم، با کاما جدا کن)</label>
+      <input type="text" class="m-presets" value="${serializePresetWeights(data.presetWeights || [250,500,1000])}">
+      <div style="font-size:12px;color:#888;margin-top:2px">
+        قیمت هر وزن معمولاً خودکار از «قیمت هر کیلو» محاسبه می‌شه. اگه می‌خوای برای یه وزن خاص (مثلاً حجم بزرگ‌تر) قیمت دستی بذاری، بعد از عدد گرم دو نقطه بذار و قیمت رو بنویس — مثال: <code>250,500,1000:5.5</code> (یعنی ۱۰۰۰ گرم رو دستی ۵.۵ ریال حساب کن، بقیه خودکار)
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" class="m-customweight" ${data.allowCustomWeight !== false ? 'checked' : ''}>
+        <span>اجازه وارد کردن وزن دلخواه توسط مشتری</span>
+      </div>
+    </div>
+    <div class="fields-unit">
+      <label>قیمت هر عدد (ریال)</label>
+      <input type="number" class="m-price" value="${data.price || ''}">
+      <label>موجودی (تعداد)</label>
+      <input type="number" class="m-stock" value="${data.stock || ''}">
+    </div>
+  `;
+  container.appendChild(box);
+
+  box.querySelector(".m-image-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToCloudinary(file);
+      box.dataset.image = url;
+      const gallery = box.querySelector(".model-images");
+      const div = document.createElement("div");
+      div.className = "image-item";
+      div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeModelImage(this, '${id}')">✕</button>`;
+      gallery.appendChild(div);
+    } catch (err) { alert("خطا در آپلود عکس مدل: " + err.message); }
+    e.target.value = "";
+  });
+
+  renderModelFields(box);
+};
+
+window.removeModelImage = function(btn, modelId) {
+  const item = btn.closest('.image-item');
+  if (item) {
+    item.remove();
+    const box = document.querySelector(`.model-box[data-mid="${modelId}"]`);
+    const remaining = box.querySelectorAll('.model-images .image-item');
+    if (remaining.length === 0) { box.dataset.image = ""; }
+    else { box.dataset.image = remaining[0].querySelector('img').src; }
+  }
+};
+
+function renderModelFields(box) {
+  box.querySelector(".fields-weight").style.display = currentSaleType === "weight" ? "block" : "none";
+  box.querySelector(".fields-unit").style.display = currentSaleType === "unit" ? "block" : "none";
+}
+
+function collectModels() {
+  const boxes = document.querySelectorAll("#models-container .model-box");
+  const models = [];
+  boxes.forEach(box => {
+    const name = box.querySelector(".m-name").value.trim() || "استاندارد";
+    const image = box.dataset.image || "";
+    if (currentSaleType === "weight") {
+      const pricePerKg = parseFloat(box.querySelector(".m-priceperkg").value) || 0;
+      const presetWeights = parsePresetWeightsInput(box.querySelector(".m-presets").value);
+      const allowCustomWeight = box.querySelector(".m-customweight").checked;
+      models.push({ name, image, pricePerKg, presetWeights, allowCustomWeight });
+    } else {
+      const price = parseFloat(box.querySelector(".m-price").value) || 0;
+      const stock = parseInt(box.querySelector(".m-stock").value) || 0;
+      models.push({ name, image, price, stock });
+    }
+  });
+  return models;
+}
+
+document.getElementById("p-images-input").addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files);
+  const gallery = document.getElementById("p-images-gallery");
+  for (const file of files) {
+    try {
+      const url = await uploadImageToCloudinary(file);
+      uploadedImages.push(url);
+      const div = document.createElement("div");
+      div.className = "image-item";
+      div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeProductImage(this, '${url}')">✕</button>`;
+      gallery.appendChild(div);
+    } catch (err) { alert("خطا در آپلود عکس: " + err.message); }
+  }
+  e.target.value = "";
+});
+
+window.removeProductImage = function(btn, imageUrl) {
+  const item = btn.closest('.image-item');
+  if (item) {
+    item.remove();
+    const index = uploadedImages.indexOf(imageUrl);
+    if (index > -1) { uploadedImages.splice(index, 1); }
+  }
+};
+
+window.resetProductForm = function() {
+  document.getElementById("product-id").value = "";
+  document.getElementById("p-name").value = "";
+  document.getElementById("p-name-en").value = "";
+  document.getElementById("p-desc").value = "";
+  document.getElementById("p-featured").checked = false;
+  document.getElementById("p-active").checked = true;
+  document.getElementById("p-directdiscount-active").checked = false;
+  document.getElementById("p-directdiscount-percent").value = "";
+  document.getElementById("p-directdiscount-box").style.display = "none";
+  document.getElementById("models-container").innerHTML = "";
+  document.getElementById("p-images-gallery").innerHTML = "";
+  uploadedImages = [];
+  document.getElementById("product-form-title").innerText = "افزودن محصول جدید";
+  setSaleType("weight");
+  addModelRow();
+  currentProductId = null;
+};
+
+window.saveProduct = async function() {
+  const statusEl = document.getElementById("product-status");
+  const id = document.getElementById("product-id").value;
+  const name = document.getElementById("p-name").value.trim();
+  const nameEn = document.getElementById("p-name-en").value.trim();
+  const categoryId = document.getElementById("p-category").value;
+  const description = document.getElementById("p-desc").value.trim();
+  const featured = document.getElementById("p-featured").checked;
+  const active = document.getElementById("p-active").checked;
+  const directDiscountActive = document.getElementById("p-directdiscount-active").checked;
+  const directDiscountPercent = parseInt(document.getElementById("p-directdiscount-percent").value) || 0;
+  const models = collectModels();
+
+  if (!name) { statusEl.innerHTML = `<div class="status-msg status-err">نام محصول را وارد کن</div>`; return; }
+  if (models.length === 0) { statusEl.innerHTML = `<div class="status-msg status-err">حداقل یک مدل اضافه کن</div>`; return; }
+  if (directDiscountActive && (directDiscountPercent < 1 || directDiscountPercent > 100)) { statusEl.innerHTML = `<div class="status-msg status-err">درصد تخفیف محصول باید بین 1 تا 100 باشد</div>`; return; }
+
+  const productData = {
+    name, nameEn, categoryId, description, featured, active,
+    saleType: currentSaleType,
+    models,
+    images: uploadedImages,
+    directDiscount: { active: directDiscountActive, percent: directDiscountPercent },
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (id) { await updateDoc(doc(db, "products", id), productData); }
+    else { productData.createdAt = new Date().toISOString(); await addDoc(collection(db, "products"), productData); }
+    statusEl.innerHTML = `<div class="status-msg status-ok">محصول ذخیره شد ✅</div>`;
+    resetProductForm();
+  } catch (err) { statusEl.innerHTML = `<div class="status-msg status-err">خطا: ${err.message}</div>`; }
+};
+
+window.editProduct = async function(id) {
+  const snap = await getDoc(doc(db, "products", id));
+  if (!snap.exists()) return;
+  const p = snap.data();
+  currentProductId = id;
+  document.getElementById("product-id").value = id;
+  document.getElementById("p-name").value = p.name || "";
+  document.getElementById("p-name-en").value = p.nameEn || "";
+  document.getElementById("p-category").value = p.categoryId || "";
+  document.getElementById("p-desc").value = p.description || "";
+  document.getElementById("p-featured").checked = !!p.featured;
+  document.getElementById("p-active").checked = p.active !== false;
+  document.getElementById("p-directdiscount-active").checked = !!(p.directDiscount && p.directDiscount.active);
+  document.getElementById("p-directdiscount-percent").value = (p.directDiscount && p.directDiscount.percent) || "";
+  document.getElementById("p-directdiscount-box").style.display = (p.directDiscount && p.directDiscount.active) ? "block" : "none";
+  document.getElementById("product-form-title").innerText = "ویرایش محصول";
+
+  uploadedImages = p.images || [];
+  const gallery = document.getElementById("p-images-gallery");
+  gallery.innerHTML = "";
+  uploadedImages.forEach(url => {
+    const div = document.createElement("div");
+    div.className = "image-item";
+    div.innerHTML = `<img src="${url}"><button class="remove-img" onclick="removeProductImage(this, '${url}')">✕</button>`;
+    gallery.appendChild(div);
+  });
+
+  setSaleType(p.saleType || "weight");
+  document.getElementById("models-container").innerHTML = "";
+  (p.models || []).forEach(m => addModelRow(m));
+
+  window.scrollTo(0, 0);
+};
+
+window.deleteProduct = async function(id) {
+  if (!confirm("حذف این محصول؟")) return;
+  await deleteDoc(doc(db, "products", id));
+};
+
+let allProductsCache = [];
+function loadProducts() {
+  const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    allProductsCache = [];
+    snapshot.forEach(docSnap => allProductsCache.push({ id: docSnap.id, ...docSnap.data() }));
+    renderProductsList();
+    refreshBannerLinkOptions();
+    if (currentOfferTarget === "products" && document.getElementById("offer-target-products").style.display !== "none") {
+      renderOfferProductsChecklist();
+    }
+  });
+}
+
+window.renderProductsList = function() {
+  const listEl = document.getElementById("products-list");
+  const searchTerm = (document.getElementById("search-box").value || "").trim();
+  listEl.innerHTML = "";
+  const filtered = allProductsCache.filter(p => !searchTerm || (p.name || "").includes(searchTerm) || (p.nameEn || "").includes(searchTerm));
+
+  filtered.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const img = (p.images && p.images[0]) ? `<img class="thumb" src="${p.images[0]}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1512,#2a2118);font-size:20px">${(allCategoriesCache.find(c => c.id === p.categoryId)?.icon) || '🛍️'}</div>`;
+    const modelsText = (p.models || []).map(m => {
+      if (p.saleType === "unit") return `${m.name}: ${m.price} ريال (${m.stock} عدد)`;
+      return `${m.name}: ${m.pricePerKg} ريال/کیلو`;
+    }).join(" | ");
+    card.innerHTML = `
+      <div class="row">
+        ${img}
+        <div>
+          <strong>${p.name}</strong>
+          ${p.nameEn ? `<span class="badge">${p.nameEn}</span>` : ''}
+          <span class="badge ${p.active !== false ? 'on' : 'off'}">${p.active !== false ? 'فعال' : 'غیرفعال'}</span>
+          ${p.featured ? '<span class="badge on">ویژه</span>' : ''}
+          ${p.directDiscount && p.directDiscount.active ? `<span class="badge on">تخفیف ${p.directDiscount.percent}%</span>` : ''}
+          <span class="badge">${p.saleType === 'unit' ? 'عددی' : 'وزنی'}</span>
+          <div style="font-size:13px;color:#aaa;margin-top:4px">${modelsText}</div>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <button class="secondary small" onclick="editProduct('${p.id}')">ویرایش</button>
+        <button class="danger small" onclick="deleteProduct('${p.id}')">حذف</button>
+      </div>
+    `;
+    listEl.appendChild(card);
+  });
+};
+
+setSaleType("weight");
+addModelRow();
+</script>
+</body>
+     </html>
